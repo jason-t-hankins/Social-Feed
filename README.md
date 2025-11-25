@@ -1,2 +1,159 @@
-# Social-Feed
-Sample app to test Apollo Client/Server enhancement options
+# Social Feed Dashboard
+
+A sample application demonstrating Apollo Client/Server best practices, including `useFragment`, DataLoader, and HTTP batching patterns.
+
+## Overview
+
+This project showcases a social feed application with:
+- **Users** - User profiles with posts and engagement
+- **Posts** - Content shared by users
+- **Comments** - User responses to posts
+- **Likes** - User engagement on posts
+
+The architecture demonstrates best practices for:
+- **Fragment colocation** - Components declare their data requirements
+- **DataLoader batching** - Server-side N+1 query resolution
+- **HTTP batching** - Client-side request optimization
+
+## Documentation
+
+📖 **[UseFragment vs DataLoader + HTTP Batching Guide](docs/USEFRAGMENT_VS_DATALOADER.md)**
+
+Comprehensive documentation on when and how to use each optimization pattern.
+
+## Architecture
+
+```
+┌─────────────────┐     ┌─────────────────┐     ┌─────────────────┐
+│   React Client  │────▶│  Apollo Server  │────▶│    MongoDB      │
+│   Apollo Client │◀────│   DataLoader    │◀────│                 │
+└─────────────────┘     └─────────────────┘     └─────────────────┘
+      │                        │
+      │ HTTP Batching          │ Query Batching
+      │ useFragment            │ N+1 Resolution
+      └────────────────────────┘
+```
+
+## Quick Start
+
+### Prerequisites
+
+- Node.js 18+
+- MongoDB (local or Atlas)
+
+### Installation
+
+```bash
+# Install dependencies
+npm install
+
+# Start MongoDB (if local)
+# mongod
+
+# Start development servers
+npm run dev
+```
+
+This starts:
+- GraphQL Server: http://localhost:4000
+- React Client: http://localhost:3000
+
+### Sample Queries
+
+```graphql
+# Get the social feed
+query GetFeed {
+  feed(first: 10) {
+    edges {
+      node {
+        id
+        content
+        author {
+          displayName
+          avatarUrl
+        }
+        commentCount
+        likeCount
+      }
+    }
+    pageInfo {
+      hasNextPage
+    }
+  }
+}
+```
+
+## Project Structure
+
+```
+social-feed/
+├── server/                 # Apollo GraphQL Server
+│   └── src/
+│       ├── dataloaders/    # DataLoader implementations
+│       ├── models/         # TypeScript types
+│       ├── resolvers/      # GraphQL resolvers
+│       └── schema/         # GraphQL type definitions
+├── client/                 # React + Apollo Client
+│   └── src/
+│       ├── components/     # React components with fragments
+│       ├── graphql/        # Queries, mutations, fragments
+│       └── apollo.ts       # Apollo Client configuration
+└── docs/                   # Documentation
+    └── USEFRAGMENT_VS_DATALOADER.md
+```
+
+## Key Concepts
+
+### DataLoader (Server-Side)
+
+Batches database queries to solve the N+1 problem:
+
+```typescript
+// Without DataLoader: 11 queries for 10 posts
+// With DataLoader: 2 queries (posts + batched authors)
+
+const userLoader = new DataLoader(async (ids) => {
+  const users = await db.users.find({ _id: { $in: ids } });
+  return ids.map(id => users.find(u => u._id.equals(id)));
+});
+```
+
+### Fragment Colocation (Client-Side)
+
+Components declare their data requirements:
+
+```tsx
+const USER_AVATAR_FRAGMENT = gql`
+  fragment UserAvatarFragment on User {
+    id
+    displayName
+    avatarUrl
+  }
+`;
+
+function UserAvatar({ user }) {
+  return <img src={user.avatarUrl} alt={user.displayName} />;
+}
+```
+
+### HTTP Batching
+
+Combines multiple GraphQL operations into single HTTP requests:
+
+```typescript
+const batchLink = new BatchHttpLink({
+  uri: '/graphql',
+  batchMax: 10,
+  batchInterval: 20,
+});
+```
+
+## Testing Batching Efficiency
+
+1. Start the server and watch console output
+2. Load the feed - observe DataLoader batching logs
+3. Open browser DevTools Network tab - observe HTTP batching
+
+## License
+
+MIT
