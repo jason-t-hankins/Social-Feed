@@ -1,14 +1,15 @@
-import { ObjectId, Collection } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { User, Post, Comment, Like } from '../models/types';
+import { CollectionLike } from '../models/collection';
 import { DataLoaderContext } from '../dataloaders';
 
 export interface ResolverContext {
   loaders: DataLoaderContext;
   collections: {
-    users: Collection<User>;
-    posts: Collection<Post>;
-    comments: Collection<Comment>;
-    likes: Collection<Like>;
+    users: CollectionLike<User>;
+    posts: CollectionLike<Post>;
+    comments: CollectionLike<Comment>;
+    likes: CollectionLike<Like>;
   };
 }
 
@@ -34,9 +35,17 @@ export const resolvers = {
       let query = {};
 
       if (after) {
-        // Decode cursor (base64 encoded ObjectId)
-        const decodedCursor = Buffer.from(after, 'base64').toString('utf-8');
-        query = { _id: { $lt: new ObjectId(decodedCursor) } };
+        try {
+          // Decode cursor (base64 encoded ObjectId)
+          const decodedCursor = Buffer.from(after, 'base64').toString('utf-8');
+          // Validate that the decoded cursor is a valid ObjectId
+          if (!ObjectId.isValid(decodedCursor)) {
+            throw new Error('Invalid cursor format');
+          }
+          query = { _id: { $lt: new ObjectId(decodedCursor) } };
+        } catch {
+          throw new Error('Invalid cursor');
+        }
       }
 
       const posts = await collections.posts
@@ -52,7 +61,7 @@ export const resolvers = {
 
       const totalCount = await collections.posts.countDocuments();
 
-      const edges = posts.map((post) => ({
+      const edges = posts.map((post: Post) => ({
         node: {
           id: post._id.toString(),
           authorId: post.authorId.toString(),
@@ -110,7 +119,7 @@ export const resolvers = {
 
     posts: async (_: unknown, __: unknown, { collections }: ResolverContext) => {
       const posts = await collections.posts.find().sort({ _id: -1 }).toArray();
-      return posts.map((post) => ({
+      return posts.map((post: Post) => ({
         id: post._id.toString(),
         authorId: post.authorId.toString(),
         content: post.content,

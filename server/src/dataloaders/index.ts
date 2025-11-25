@@ -1,6 +1,7 @@
 import DataLoader from 'dataloader';
-import { ObjectId, Collection } from 'mongodb';
+import { ObjectId } from 'mongodb';
 import { User, Post, Comment, Like } from '../models/types';
+import { CollectionLike } from '../models/collection';
 
 /**
  * DataLoader factory functions for efficient batching.
@@ -33,10 +34,10 @@ export interface DataLoaderContext {
  * Each loader is tied to specific MongoDB collections.
  */
 export function createDataLoaders(
-  usersCollection: Collection<User>,
-  postsCollection: Collection<Post>,
-  commentsCollection: Collection<Comment>,
-  likesCollection: Collection<Like>
+  usersCollection: CollectionLike<User>,
+  postsCollection: CollectionLike<Post>,
+  commentsCollection: CollectionLike<Comment>,
+  likesCollection: CollectionLike<Like>
 ): DataLoaderContext {
   return {
     /**

@@ -89,9 +89,9 @@ DataLoader is a utility for batching and caching database requests within a sing
 ### The N+1 Problem
 
 ```graphql
-query {
-  posts(first: 10) {
-    author { name }  # Without DataLoader: 10 separate queries!
+query GetPosts {
+  posts {
+    author { displayName }  # Without DataLoader: 10 separate queries!
   }
 }
 ```

@@ -32,8 +32,7 @@ const batchHttpLink = new BatchHttpLink({
 });
 
 // Use environment variable to toggle batching
-const USE_BATCHING = typeof import.meta !== 'undefined' && 
-  import.meta.env?.VITE_USE_BATCHING === 'true';
+const USE_BATCHING = import.meta.env?.VITE_USE_BATCHING === 'true';
 
 /**
  * Apollo Client Cache Configuration
