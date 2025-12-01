@@ -57,15 +57,15 @@
 
 ## UseFragment vs HTTP Batch + Facebook DataLoader (with A/B Tests & APQ Considerations)
 
-    Design and implement A/B testing on screens that execute many different GraphQL queries simultaneously, to compare the real-world impact of each approach.
-    Examine query composition patterns, including how queries are batched, how fragments are reused, and how DataLoader aggregates requests.
-    Evaluate the use and impact of Colocated Fragments in both the UseFragment and HTTP Batch + DataLoader approaches.
-        Review the latest Apollo guidance and community practices, including the concepts and examples from this Apollo YouTube demo.
+  -  Design and implement A/B testing on screens that execute many different GraphQL queries simultaneously, to compare the real-world impact of each approach.
+  -  Examine query composition patterns, including how queries are batched, how fragments are reused, and how DataLoader aggregates requests.
+  -  Evaluate the use and impact of Colocated Fragments in both the UseFragment and HTTP Batch + DataLoader approaches.
+        Review the latest Apollo guidance and community practices
         Analyze how colocated fragments affect component modularity, cache consistency, query efficiency, and developer experience in each scenario.
-    Analyze the resulting behavior at the database level for each approach, including:
+  -  Analyze the resulting behavior at the database level for each approach, including:
         The number and shape of queries sent to the database.
         The volume and structure of returned data.
         Impact on performance and data consistency.
-    Assess how each approach interacts with Apollo Persisted Queries (APQ), noting any compatibility issues or required workarounds.
-    Develop clear, scenario-based guidance for when to use each approach, including trade-offs, performance implications, and maintainability considerations.
-    Document all findings in an ADR, capturing the evaluation process, test results, and the rationale behind recommended best practices.
+  -  Assess how each approach interacts with Apollo Persisted Queries (APQ), noting any compatibility issues or required workarounds.
+  -  Develop clear, scenario-based guidance for when to use each approach, including trade-offs, performance implications, and maintainability considerations.
+  -  Document all findings in an ADR, capturing the evaluation process, test results, and the rationale behind recommended best practices.

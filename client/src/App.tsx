@@ -21,7 +21,7 @@ function App() {
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
       }}>
         <h1 style={{ margin: 0, fontSize: '32px', color: '#333' }}>
-          🚀 Social Feed Dashboard
+          Social Feed Dashboard
         </h1>
         <p style={{ margin: '8px 0 0', color: '#666' }}>
           Demonstrating UseFragment vs DataLoader + HTTP Batching

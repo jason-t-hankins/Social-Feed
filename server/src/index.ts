@@ -209,30 +209,7 @@ async function main(): Promise<void> {
     },
   });
 
-  console.log(`🚀 Server ready at ${url}`);
-  console.log(`
-  Try these queries:
-  
-  # Get the feed with batched loading
-  query Feed {
-    feed(first: 10) {
-      edges {
-        node {
-          id
-          content
-          author {
-            displayName
-            avatarUrl
-          }
-          commentCount
-          likeCount
-        }
-      }
-    }
-  }
-  
-  # Watch the console for DataLoader batching logs!
-  `);
+  console.log(`Server ready at ${url}`);
 }
 
 main().catch((error) => {
