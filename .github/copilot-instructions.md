@@ -51,21 +51,37 @@
 - See the root `README.md` and `docs/USEFRAGMENT_VS_DATALOADER.md` for detailed explanations and examples.
 - Follow the fragment colocation and DataLoader patterns for all new features.
 
-## Summary - Task 1
+## Optimization Patterns - Key Decision
 
-- Explore and develop comprehensive guidance on when to use UseFragment versus HTTP Batch combined with Facebook DataLoader (apollo-datasource-mongodb) in Apollo Client/Server.
+This project demonstrates three complementary GraphQL optimization patterns. See comprehensive documentation in `docs/`:
 
-## UseFragment vs HTTP Batch + Facebook DataLoader (with A/B Tests & APQ Considerations)
+### When to Use Each Pattern
 
-  -  Design and implement A/B testing on screens that execute many different GraphQL queries simultaneously, to compare the real-world impact of each approach.
-  -  Examine query composition patterns, including how queries are batched, how fragments are reused, and how DataLoader aggregates requests.
-  -  Evaluate the use and impact of Colocated Fragments in both the UseFragment and HTTP Batch + DataLoader approaches.
-        Review the latest Apollo guidance and community practices
-        Analyze how colocated fragments affect component modularity, cache consistency, query efficiency, and developer experience in each scenario.
-  -  Analyze the resulting behavior at the database level for each approach, including:
-        The number and shape of queries sent to the database.
-        The volume and structure of returned data.
-        Impact on performance and data consistency.
-  -  Assess how each approach interacts with Apollo Persisted Queries (APQ), noting any compatibility issues or required workarounds.
-  -  Develop clear, scenario-based guidance for when to use each approach, including trade-offs, performance implications, and maintainability considerations.
-  -  Document all findings in an ADR, capturing the evaluation process, test results, and the rationale behind recommended best practices.
+**DataLoader (Server):** ✅ ALWAYS
+- Solves N+1 query problem
+- Required for production GraphQL servers
+- 98% reduction in database queries (research-backed)
+
+**HTTP Batching (Network):** ⚠️ TEST FIRST
+- Reduces HTTP overhead (35-50% improvement)
+- Most beneficial with HTTP/1.1 and high-latency networks
+- Less impact with HTTP/2 multiplexing
+
+**useFragment (Client):** ⚠️ FOR COMPLEX UIs
+- Prevents unnecessary re-renders (95% reduction)
+- Best for real-time updates and reusable components
+- Adds complexity - only use when beneficial
+
+### Quick Reference
+- [Quick Reference Guide](../docs/QUICK_REFERENCE.md) - Decision tree and common scenarios
+- [Research Findings](../docs/RESEARCH_FINDINGS.md) - Industry benchmarks and best practices
+- [ADR 0001](../docs/adr/0001-usefragment-vs-httpbatch-dataloader.md) - Detailed decision rationale
+- [Comprehensive Guide](../docs/USEFRAGMENT_VS_DATALOADER.md) - Implementation patterns
+
+### Test Pages
+Run `npm run dev` and navigate to test pages:
+- **HTTP Batching Test**: Compare batched vs non-batched performance
+- **useFragment Test**: Visualize re-render optimization
+- **DataLoader Test**: See N+1 query resolution in action
+
+Use browser DevTools (Network, Console, React DevTools) to observe each pattern's impact.
