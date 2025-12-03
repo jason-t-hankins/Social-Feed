@@ -1,5 +1,9 @@
 import { ApolloServer } from '@apollo/server';
-import { startStandaloneServer } from '@apollo/server/standalone';
+import { expressMiddleware } from '@apollo/server/express4';
+import { ApolloServerPluginDrainHttpServer } from '@apollo/server/plugin/drainHttpServer';
+import express from 'express';
+import http from 'http';
+import cors from 'cors';
 import { MongoClient, ObjectId } from 'mongodb';
 import { typeDefs } from './schema/typeDefs';
 import { resolvers, ResolverContext } from './resolvers';
@@ -182,34 +186,51 @@ async function main(): Promise<void> {
     likes: db.collection<Like>('likes'),
   };
 
-  // Create Apollo Server
+  // Create Express app and HTTP server for Apollo Server 4
+  const app = express();
+  const httpServer = http.createServer(app);
+
+  // Create Apollo Server with HTTP batching enabled
   const server = new ApolloServer<ResolverContext>({
     typeDefs,
     resolvers,
+    plugins: [ApolloServerPluginDrainHttpServer({ httpServer })],
+    // Enable operation batching (allows client to send multiple operations in one HTTP request)
+    allowBatchedHttpRequests: true,
   });
 
-  // Start the server
-  const { url } = await startStandaloneServer(server, {
-    listen: { port: PORT },
-    context: async (): Promise<ResolverContext> => {
-      // Create fresh DataLoader instances per request
-      // This is crucial - DataLoader caches results, so using the same
-      // instance across requests would cause stale data issues
-      const loaders = createDataLoaders(
-        collections.users,
-        collections.posts,
-        collections.comments,
-        collections.likes
-      );
+  await server.start();
 
-      return {
-        loaders,
-        collections,
-      };
-    },
-  });
+  // Apply Apollo middleware with CORS
+  app.use(
+    '/graphql',
+    cors<cors.CorsRequest>(),
+    express.json(),
+    expressMiddleware(server, {
+      context: async (): Promise<ResolverContext> => {
+        // Create fresh DataLoader instances per request
+        // This is crucial - DataLoader caches results, so using the same
+        // instance across requests would cause stale data issues
+        const loaders = createDataLoaders(
+          collections.users,
+          collections.posts,
+          collections.comments,
+          collections.likes
+        );
 
-  console.log(`Server ready at ${url}`);
+        return {
+          loaders,
+          collections,
+        };
+      },
+    })
+  );
+
+  // Start HTTP server
+  await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
+  
+  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
+  console.log(`📦 HTTP batching enabled`);
 }
 
 main().catch((error) => {

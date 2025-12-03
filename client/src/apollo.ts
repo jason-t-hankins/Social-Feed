@@ -65,7 +65,9 @@ const cache = new InMemoryCache({
 export const apolloClient = new ApolloClient({
   link: USE_BATCHING ? batchHttpLink : httpLink,
   cache,
-  connectToDevTools: true,
+  devtools: {
+    enabled: true,
+  },
 });
 
 // Re-export for convenience

@@ -51,26 +51,25 @@
 - See the root `README.md` and `docs/USEFRAGMENT_VS_DATALOADER.md` for detailed explanations and examples.
 - Follow the fragment colocation and DataLoader patterns for all new features.
 
-## Optimization Patterns - Key Decision
+## Optimization Approach Decision
 
-This project demonstrates three complementary GraphQL optimization patterns. See comprehensive documentation in `docs/`:
+This project compares two architectural approaches for GraphQL optimization. See comprehensive documentation in `docs/`:
 
-### When to Use Each Pattern
+### The Two Approaches
 
-**DataLoader (Server):** ✅ ALWAYS
-- Solves N+1 query problem
-- Required for production GraphQL servers
-- 98% reduction in database queries (research-backed)
+**Approach 1: UseFragment (Client Cache Optimization)** 
+- **Layer**: Client-side cache subscriptions
+- **Technique**: Fragment colocation + fine-grained re-renders
+- **Benefit**: Only affected components update when data changes (95% fewer re-renders)
+- **Best for**: Complex UIs with frequent updates, real-time features, reusable components
 
-**HTTP Batching (Network):** ⚠️ TEST FIRST
-- Reduces HTTP overhead (35-50% improvement)
-- Most beneficial with HTTP/1.1 and high-latency networks
-- Less impact with HTTP/2 multiplexing
+**Approach 2: HTTP Batch + DataLoader (Network & Server Optimization)** 
+- **Layer**: Network + Server optimization
+- **Technique**: HTTP request batching + database query batching  
+- **Benefit**: Fewer HTTP requests (35-50% improvement) + No N+1 queries (98% fewer DB queries)
+- **Best for**: Dashboard-style UIs, reducing network/database load, simple queries
 
-**useFragment (Client):** ⚠️ FOR COMPLEX UIs
-- Prevents unnecessary re-renders (95% reduction)
-- Best for real-time updates and reusable components
-- Adds complexity - only use when beneficial
+**Key Insight**: Both approaches work together! They optimize different layers of the stack and are complementary, not alternatives.
 
 ### Quick Reference
 - [Quick Reference Guide](../docs/QUICK_REFERENCE.md) - Decision tree and common scenarios
@@ -78,10 +77,9 @@ This project demonstrates three complementary GraphQL optimization patterns. See
 - [ADR 0001](../docs/adr/0001-usefragment-vs-httpbatch-dataloader.md) - Detailed decision rationale
 - [Comprehensive Guide](../docs/USEFRAGMENT_VS_DATALOADER.md) - Implementation patterns
 
-### Test Pages
-Run `npm run dev` and navigate to test pages:
-- **HTTP Batching Test**: Compare batched vs non-batched performance
-- **useFragment Test**: Visualize re-render optimization
-- **DataLoader Test**: See N+1 query resolution in action
+### Test Page
+Run `npm run dev` and navigate to:
+- **📱 Feed Demo**: See both approaches working together in production
+- **⚡ Approach Comparison Test**: Side-by-side comparison with metrics
 
-Use browser DevTools (Network, Console, React DevTools) to observe each pattern's impact.
+Use browser DevTools (Network, Console, React DevTools) to observe each approach's impact.

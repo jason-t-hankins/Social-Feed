@@ -1,10 +1,8 @@
 import { useState } from 'react';
 import { Feed } from './components';
-import { PerformanceTestPage } from './pages/PerformanceTest';
-import { FragmentComparisonPage } from './pages/FragmentComparison';
-import { DataLoaderVisualizationPage } from './pages/DataLoaderVisualization';
+import { ApproachComparisonPage } from './pages/ApproachComparison';
 
-type Page = 'feed' | 'performance' | 'fragments' | 'dataloader';
+type Page = 'feed' | 'approach-comparison';
 
 /**
  * App Component
@@ -44,30 +42,22 @@ function App() {
           Social Feed Dashboard
         </h1>
         <p style={{ margin: '8px 0 16px', color: '#666' }}>
-          Demonstrating UseFragment vs DataLoader + HTTP Batching
+          Demonstrating UseFragment vs HTTP Batch + DataLoader
         </p>
 
         <nav style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
-            📱 Feed
+            📱 Feed Demo
           </button>
-          <button onClick={() => setCurrentPage('performance')} style={navButtonStyle('performance')}>
-            ⚡ HTTP Batching Test
-          </button>
-          <button onClick={() => setCurrentPage('fragments')} style={navButtonStyle('fragments')}>
-            🧩 useFragment Test
-          </button>
-          <button onClick={() => setCurrentPage('dataloader')} style={navButtonStyle('dataloader')}>
-            🔄 DataLoader Test
+          <button onClick={() => setCurrentPage('approach-comparison')} style={navButtonStyle('approach-comparison')}>
+            ⚡ Approach Comparison Test
           </button>
         </nav>
       </header>
 
       <main>
         {currentPage === 'feed' && <Feed />}
-        {currentPage === 'performance' && <PerformanceTestPage />}
-        {currentPage === 'fragments' && <FragmentComparisonPage />}
-        {currentPage === 'dataloader' && <DataLoaderVisualizationPage />}
+        {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
       </main>
 
       {currentPage === 'feed' && (
