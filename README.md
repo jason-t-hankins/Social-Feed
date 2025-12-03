@@ -1,6 +1,6 @@
 # Social-Feed
 
-GraphQL optimization demo: **UseFragment**, **HTTP Batching**, and **DataLoader** with React + Apollo Client + Apollo Server + MongoDB.
+GraphQL optimization demo: **Fragment Colocation**, **HTTP Batching**, and **DataLoader** with React + Apollo Client + Apollo Server + MongoDB.
 
 ## Quick Start
 
@@ -16,27 +16,41 @@ npm run dev
 
 ## What This Demonstrates
 
-### 1. UseFragment (Client Cache)
-Components subscribe to fragments → fine-grained re-renders.
+### 🏆 1. DataLoader (Database Optimization) - BIGGEST WIN
+Eliminates N+1 queries. **99% reduction in database queries!**
+- 10 posts: 11 queries → 2 queries
+- 1000 posts: 3001 queries → 4 queries
+- **Non-negotiable for production**
 
-### 2. HTTP Batching (Network)
-Multiple queries → one HTTP request (dashboard-style UIs).
+### 🚀 2. HTTP Batching (Network Optimization) - REAL PERFORMANCE
+Multiple queries → one HTTP request.
+- 5 independent queries → 1 batched HTTP request
+- Best for dashboards with 10+ widgets
+- **Visible in DevTools Network tab**
 
-### 3. DataLoader (Server)
-Eliminates N+1 queries. **Non-negotiable for production.**
+### 🎯 3. Fragment Colocation (Code Organization) - MAINTAINABILITY
+Components declare their own data needs.
+- Not a performance optimization!
+- Better code organization and maintainability
+- Prevents breaking changes in large teams
 
-## Test Pages
+## Demo Pages
 
-- **📱 Feed Demo**: Production app with all patterns
-- **🎯 UseFragment Demo**: Update likes → only stats re-render (not content!)
-- **🚀 HTTP Batching Demo**: 5 queries → 1 batched HTTP request
-- **⚡ Full Comparison**: Side-by-side metrics
+- **🏆 DataLoader Demo**: Database optimization (99% fewer queries!) - THE BIGGEST WIN
+- **🚀 HTTP Batching**: Network optimization (5 requests → 1) - Real performance
+- **🎯 Fragment Colocation**: Code organization - Maintainability, not performance
+- **📱 Feed Demo**: Production app with all patterns combined
+- **⚡ Full Comparison**: Side-by-side comparison
 
-**Key**: These are complementary (different layers), not alternatives!
+**Performance Ranking:**
+1. 🥇 DataLoader (99% DB query reduction)
+2. 🥈 HTTP Batching (80% network reduction)
+3. 🥉 Fragment Colocation (0% performance gain, 100% maintainability gain)
 
 ## Documentation
 
-See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for decision rationale.
+- **📖 Demo Guide**: See `docs/DEMO_GUIDE.md` for detailed walkthrough
+- **📋 ADR**: See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for decision rationale
 
 ## Architecture
 

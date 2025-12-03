@@ -2,9 +2,10 @@ import { useState } from 'react';
 import { Feed } from './components';
 import { ApproachComparisonPage } from './pages/ApproachComparison';
 import { BatchingDemoPage } from './pages/BatchingDemo';
-import { FragmentDemoPage } from './pages/FragmentDemo';
+import { FragmentColocationDemoPage } from './pages/FragmentColocationDemo';
+import { DataLoaderDemoPage } from './pages/DataLoaderDemo';
 
-type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'fragment-demo';
+type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'fragment-colocation' | 'dataloader';
 
 /**
  * App Component
@@ -51,11 +52,14 @@ function App() {
           <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
             📱 Feed Demo
           </button>
-          <button onClick={() => setCurrentPage('fragment-demo')} style={navButtonStyle('fragment-demo')}>
-            🎯 UseFragment Demo
+          <button onClick={() => setCurrentPage('dataloader')} style={navButtonStyle('dataloader')}>
+            🏆 DataLoader (Biggest Win!)
           </button>
           <button onClick={() => setCurrentPage('batching-demo')} style={navButtonStyle('batching-demo')}>
-            🚀 HTTP Batching Demo
+            🚀 HTTP Batching
+          </button>
+          <button onClick={() => setCurrentPage('fragment-colocation')} style={navButtonStyle('fragment-colocation')}>
+            🎯 Fragment Colocation
           </button>
           <button onClick={() => setCurrentPage('approach-comparison')} style={navButtonStyle('approach-comparison')}>
             ⚡ Full Comparison
@@ -65,8 +69,9 @@ function App() {
 
       <main>
         {currentPage === 'feed' && <Feed />}
-        {currentPage === 'fragment-demo' && <FragmentDemoPage />}
+        {currentPage === 'dataloader' && <DataLoaderDemoPage />}
         {currentPage === 'batching-demo' && <BatchingDemoPage />}
+        {currentPage === 'fragment-colocation' && <FragmentColocationDemoPage />}
         {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
       </main>
 

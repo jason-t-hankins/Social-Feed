@@ -52,22 +52,31 @@
 
 ## GraphQL Optimization Patterns
 
-This project demonstrates three complementary optimization techniques:
+This project demonstrates three techniques that optimize different layers:
 
-1. **UseFragment** (Client cache) - Fine-grained re-renders, only affected components update
-2. **HTTP Batching** (Network) - Multiple queries → single HTTP request (10+ independent queries)  
-3. **DataLoader** (Server) - Eliminates N+1 database queries (always use!)
+### Performance Optimizations (Ranked by Impact):
+1. **DataLoader** (Server → Database) - 99% DB query reduction - THE BIGGEST WIN!
+2. **HTTP Batching** (Client → Server) - 80% network overhead reduction
+
+### Code Organization (Not Performance):
+3. **Fragment Colocation** (Code) - 0% performance gain, maintainability only
 
 ### When Each Pattern Shines
-- **UseFragment**: Real-time UIs, reusable components, frequent updates
-- **HTTP Batching**: Dashboards with 10+ widgets, admin panels, mobile apps
-- **DataLoader**: Any GraphQL server (non-negotiable for production)
+- **DataLoader**: ✅ ALWAYS - Non-negotiable for production! Reduces 1000 queries to 4.
+- **HTTP Batching**: Dashboards with 10+ independent widgets executing simultaneously
+- **Fragment Colocation**: Large teams, reusable components (code quality, NOT speed)
 
 See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for detailed decision rationale.
 
 ### Test Pages
 Run `npm run dev` to see live demos:
-- **📱 Feed Demo**: Production example with all patterns
-- **🎯 UseFragment Demo**: Click likes → only stats component re-renders (99% fewer re-renders!)
-- **🚀 HTTP Batching Demo**: 5 queries without batching vs 1 batched request
-- **⚡ Full Comparison**: Side-by-side performance metrics
+- **🏆 DataLoader**: Database optimization (99% query reduction) - BIGGEST WIN
+- **🚀 HTTP Batching**: Network optimization (5 requests → 1) - Real performance
+- **🎯 Fragment Colocation**: Code organization (maintainability, NOT performance)
+- **📱 Feed Demo**: Production example with all patterns combined
+- **⚡ Full Comparison**: Side-by-side metrics
+
+**Performance Impact Ranking:**
+1. DataLoader: 99% fewer database queries 🥇
+2. HTTP Batching: 80% less network overhead 🥈  
+3. Fragment Colocation: 0% performance gain (code quality only) 🎯
