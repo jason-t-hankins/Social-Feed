@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { Feed } from './components';
 import { ApproachComparisonPage } from './pages/ApproachComparison';
+import { BatchingDemoPage } from './pages/BatchingDemo';
+import { FragmentDemoPage } from './pages/FragmentDemo';
 
-type Page = 'feed' | 'approach-comparison';
+type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'fragment-demo';
 
 /**
  * App Component
@@ -49,14 +51,22 @@ function App() {
           <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
             📱 Feed Demo
           </button>
+          <button onClick={() => setCurrentPage('fragment-demo')} style={navButtonStyle('fragment-demo')}>
+            🎯 UseFragment Demo
+          </button>
+          <button onClick={() => setCurrentPage('batching-demo')} style={navButtonStyle('batching-demo')}>
+            🚀 HTTP Batching Demo
+          </button>
           <button onClick={() => setCurrentPage('approach-comparison')} style={navButtonStyle('approach-comparison')}>
-            ⚡ Approach Comparison Test
+            ⚡ Full Comparison
           </button>
         </nav>
       </header>
 
       <main>
         {currentPage === 'feed' && <Feed />}
+        {currentPage === 'fragment-demo' && <FragmentDemoPage />}
+        {currentPage === 'batching-demo' && <BatchingDemoPage />}
         {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
       </main>
 

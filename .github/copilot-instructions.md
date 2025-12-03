@@ -1,8 +1,7 @@
 # Copilot Instructions for Social-Feed
 
 ## Project Overview
-- **Social-Feed** is a full-stack demo app with a React + Apollo Client frontend and an Apollo Server backend (Node.js/TypeScript) using MongoDB.
-- The project demonstrates best practices for GraphQL data fetching: fragment colocation, DataLoader batching, and HTTP request batching.
+**Social-Feed** is a full-stack demo showcasing GraphQL optimization patterns with React + Apollo Client frontend and Apollo Server backend (Node.js/TypeScript) using MongoDB.
 
 ## Architecture & Data Flow
 - **Client:**
@@ -51,35 +50,24 @@
 - See the root `README.md` and `docs/USEFRAGMENT_VS_DATALOADER.md` for detailed explanations and examples.
 - Follow the fragment colocation and DataLoader patterns for all new features.
 
-## Optimization Approach Decision
+## GraphQL Optimization Patterns
 
-This project compares two architectural approaches for GraphQL optimization. See comprehensive documentation in `docs/`:
+This project demonstrates three complementary optimization techniques:
 
-### The Two Approaches
+1. **UseFragment** (Client cache) - Fine-grained re-renders, only affected components update
+2. **HTTP Batching** (Network) - Multiple queries → single HTTP request (10+ independent queries)  
+3. **DataLoader** (Server) - Eliminates N+1 database queries (always use!)
 
-**Approach 1: UseFragment (Client Cache Optimization)** 
-- **Layer**: Client-side cache subscriptions
-- **Technique**: Fragment colocation + fine-grained re-renders
-- **Benefit**: Only affected components update when data changes (95% fewer re-renders)
-- **Best for**: Complex UIs with frequent updates, real-time features, reusable components
+### When Each Pattern Shines
+- **UseFragment**: Real-time UIs, reusable components, frequent updates
+- **HTTP Batching**: Dashboards with 10+ widgets, admin panels, mobile apps
+- **DataLoader**: Any GraphQL server (non-negotiable for production)
 
-**Approach 2: HTTP Batch + DataLoader (Network & Server Optimization)** 
-- **Layer**: Network + Server optimization
-- **Technique**: HTTP request batching + database query batching  
-- **Benefit**: Fewer HTTP requests (35-50% improvement) + No N+1 queries (98% fewer DB queries)
-- **Best for**: Dashboard-style UIs, reducing network/database load, simple queries
+See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for detailed decision rationale.
 
-**Key Insight**: Both approaches work together! They optimize different layers of the stack and are complementary, not alternatives.
-
-### Quick Reference
-- [Quick Reference Guide](../docs/QUICK_REFERENCE.md) - Decision tree and common scenarios
-- [Research Findings](../docs/RESEARCH_FINDINGS.md) - Industry benchmarks and best practices
-- [ADR 0001](../docs/adr/0001-usefragment-vs-httpbatch-dataloader.md) - Detailed decision rationale
-- [Comprehensive Guide](../docs/USEFRAGMENT_VS_DATALOADER.md) - Implementation patterns
-
-### Test Page
-Run `npm run dev` and navigate to:
-- **📱 Feed Demo**: See both approaches working together in production
-- **⚡ Approach Comparison Test**: Side-by-side comparison with metrics
-
-Use browser DevTools (Network, Console, React DevTools) to observe each approach's impact.
+### Test Pages
+Run `npm run dev` to see live demos:
+- **📱 Feed Demo**: Production example with all patterns
+- **🎯 UseFragment Demo**: Click likes → only stats component re-renders (99% fewer re-renders!)
+- **🚀 HTTP Batching Demo**: 5 queries without batching vs 1 batched request
+- **⚡ Full Comparison**: Side-by-side performance metrics

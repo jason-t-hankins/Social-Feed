@@ -1,25 +1,42 @@
-# Social Feed Dashboard
+# Social-Feed
 
-A sample application demonstrating Apollo Client/Server best practices, including `useFragment`, DataLoader, and HTTP batching patterns.
+GraphQL optimization demo: **UseFragment**, **HTTP Batching**, and **DataLoader** with React + Apollo Client + Apollo Server + MongoDB.
 
-## Overview
+## Quick Start
 
-This project showcases a social feed application with:
-- **Users** - User profiles with posts and engagement
-- **Posts** - Content shared by users
-- **Comments** - User responses to posts
-- **Likes** - User engagement on posts
+```bash
+npm install
+npm run dev
+```
 
-The architecture demonstrates best practices for:
-- **Fragment colocation** - Components declare their data requirements
-- **DataLoader batching** - Server-side N+1 query resolution
-- **HTTP batching** - Client-side request optimization
+- Client: `http://localhost:3000`
+- Server: `http://localhost:4000/graphql`
+
+**No MongoDB?** Use `USE_MOCK_DB=true npm run dev`
+
+## What This Demonstrates
+
+### 1. UseFragment (Client Cache)
+Components subscribe to fragments → fine-grained re-renders.
+
+### 2. HTTP Batching (Network)
+Multiple queries → one HTTP request (dashboard-style UIs).
+
+### 3. DataLoader (Server)
+Eliminates N+1 queries. **Non-negotiable for production.**
+
+## Test Pages
+
+- **📱 Feed Demo**: Production app with all patterns
+- **🎯 UseFragment Demo**: Update likes → only stats re-render (not content!)
+- **🚀 HTTP Batching Demo**: 5 queries → 1 batched HTTP request
+- **⚡ Full Comparison**: Side-by-side metrics
+
+**Key**: These are complementary (different layers), not alternatives!
 
 ## Documentation
 
-📖 **[UseFragment vs DataLoader + HTTP Batching Guide](docs/USEFRAGMENT_VS_DATALOADER.md)**
-
-Comprehensive documentation on when and how to use each optimization pattern.
+See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for decision rationale.
 
 ## Architecture
 
