@@ -11,9 +11,9 @@ import { BatchHttpLink } from '@apollo/client/link/batch-http';
  * all those separate requests into ONE HTTP request.
  * 
  * WITHOUT batching: 5 unique queries = 5 HTTP requests
- * WITH batching: 5 unique queries = 1 HTTP request (with 5 operations inside)
+ * WITH batching: 5 unique queries = 2-3 HTTP requests (operations batched together)
  * 
- * 📊 Open DevTools Network tab to see the difference!
+ *  Open DevTools Network tab to see the difference!
  */
 
 // Independent queries that different components might make
@@ -234,16 +234,16 @@ export function BatchingDemoPage() {
 
   const runTest = () => {
     console.clear();
-    console.log('🚀 HTTP Batching Test Starting');
-    console.log('📊 Open Network tab and filter by "graphql"');
+    console.log(' HTTP Batching Test Starting');
+    console.log(' Open Network tab and filter by "graphql"');
     console.log('');
     setTestRun(prev => prev + 1);
     
     // Track requests
     setTimeout(() => {
-      console.log('✅ Test complete! Check Network tab:');
+      console.log(' Test complete! Check Network tab:');
       console.log('   - WITHOUT batching: Should see 5 separate requests');
-      console.log('   - WITH batching: Should see 1 request (batched)');
+      console.log('   - WITH batching: Should see 2-3 requests (batched + preflight/metadata)');
     }, 2000);
   };
 
@@ -251,25 +251,7 @@ export function BatchingDemoPage() {
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
       <header style={{ marginBottom: '32px' }}>
         <h1>HTTP Batching Performance Demo</h1>
-        <p style={{ color: '#666', fontSize: '18px' }}>
-          See the real power of HTTP batching with multiple independent queries
-        </p>
       </header>
-
-      {/* Explanation */}
-      <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#fff3cd', borderRadius: '8px', border: '2px solid #ffc107' }}>
-        <h2 style={{ marginTop: 0 }}>💡 What This Demonstrates</h2>
-        <p style={{ fontSize: '16px', lineHeight: '1.6' }}>
-          <strong>Scenario:</strong> A dashboard with 5 independent widgets, each making its own GraphQL query.
-        </p>
-        <ul style={{ fontSize: '16px', lineHeight: '1.8' }}>
-          <li><strong>WITHOUT batching:</strong> 5 separate HTTP requests = more overhead, slower load</li>
-          <li><strong>WITH batching:</strong> 1 HTTP request containing all 5 operations = faster!</li>
-        </ul>
-        <p style={{ fontSize: '14px', marginTop: '16px', fontWeight: 'bold' }}>
-          📌 HTTP batching shines when you have MULTIPLE INDEPENDENT QUERIES executing at the same time.
-        </p>
-      </div>
 
       {/* Test Button */}
       <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
@@ -286,7 +268,7 @@ export function BatchingDemoPage() {
             fontWeight: 'bold',
           }}
         >
-          ▶️ Run Test (Open Network Tab First!)
+          ▶ Run Test
         </button>
       </div>
 
@@ -295,7 +277,7 @@ export function BatchingDemoPage() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
           <div style={{ padding: '24px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '3px solid #f44336' }}>
             <ApolloProvider client={noBatchClient}>
-              <Dashboard title="❌ WITHOUT Batching" />
+              <Dashboard title=" WITHOUT Batching" />
             </ApolloProvider>
             <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#ffebee', borderRadius: '4px' }}>
               <strong>Expected: 5 HTTP requests</strong>
@@ -305,67 +287,15 @@ export function BatchingDemoPage() {
 
           <div style={{ padding: '24px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '3px solid #4caf50' }}>
             <ApolloProvider client={batchClient}>
-              <Dashboard title="✅ WITH Batching" />
+              <Dashboard title=" WITH Batching" />
             </ApolloProvider>
             <div style={{ marginTop: '16px', padding: '12px', backgroundColor: '#e8f5e9', borderRadius: '4px' }}>
-              <strong>Expected: 1 HTTP request (batched)</strong>
+              <strong>Expected: 2-3 HTTP requests (batched payload + preflight)</strong>
               <div style={{ fontSize: '14px', marginTop: '4px' }}>Check Network tab - one request with array payload</div>
             </div>
           </div>
         </div>
       )}
-
-      {/* DevTools Guide */}
-      <div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#d1ecf1', borderRadius: '8px' }}>
-        <h2>📊 How to Observe the Difference</h2>
-        <ol style={{ fontSize: '16px', lineHeight: '1.8' }}>
-          <li><strong>Open DevTools</strong> → Network tab</li>
-          <li><strong>Filter by "graphql"</strong> in the search box</li>
-          <li><strong>Click "Run Test"</strong> button above</li>
-          <li><strong>Watch the requests:</strong>
-            <ul>
-              <li>Left side (red): You'll see 5 separate HTTP requests</li>
-              <li>Right side (green): You'll see 1 HTTP request with an array in the payload</li>
-            </ul>
-          </li>
-          <li><strong>Click on the batched request</strong> → Preview/Payload tab to see the array of operations</li>
-        </ol>
-      </div>
-
-      {/* When to Use */}
-      <div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#d4edda', borderRadius: '8px' }}>
-        <h2>🎯 When HTTP Batching Really Helps</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#c3e6cb' }}>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Scenario</th>
-              <th style={{ padding: '12px', textAlign: 'center' }}>Batching Benefit</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Dashboard with 10+ independent widgets</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅✅✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Admin panel with multiple data tables</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅✅✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Mobile app on slow network (HTTP/1.1)</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Single page with one query</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>❌</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '12px' }}>Modern app with HTTP/2</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>⚠️</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

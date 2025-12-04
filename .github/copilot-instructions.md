@@ -57,14 +57,12 @@ This project demonstrates three techniques that optimize different layers:
 ### Performance Optimizations (Ranked by Impact):
 1. **DataLoader** (Server → Database) - 99% DB query reduction - THE BIGGEST WIN!
 2. **HTTP Batching** (Client → Server) - 80% network overhead reduction
-
-### Code Organization (Not Performance):
-3. **Fragment Colocation** (Code) - 0% performance gain, maintainability only
+3. **useFragment** (Component → Cache) - 99% fewer re-renders on updates
 
 ### When Each Pattern Shines
-- **DataLoader**: ✅ ALWAYS - Non-negotiable for production! Reduces 1000 queries to 4.
+- **DataLoader**: ✅ ALWAYS - Non-negotiable for production! Reduces 3001 queries to 4.
 - **HTTP Batching**: Dashboards with 10+ independent widgets executing simultaneously
-- **Fragment Colocation**: Large teams, reusable components (code quality, NOT speed)
+- **useFragment**: Real-time updates (likes, views), lists with 100+ items, frequent field updates
 
 See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for detailed decision rationale.
 
@@ -72,11 +70,11 @@ See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for detailed decision
 Run `npm run dev` to see live demos:
 - **🏆 DataLoader**: Database optimization (99% query reduction) - BIGGEST WIN
 - **🚀 HTTP Batching**: Network optimization (5 requests → 1) - Real performance
-- **🎯 Fragment Colocation**: Code organization (maintainability, NOT performance)
+- **✨ useFragment**: Re-render optimization - Live cache bindings
 - **📱 Feed Demo**: Production example with all patterns combined
 - **⚡ Full Comparison**: Side-by-side metrics
 
 **Performance Impact Ranking:**
 1. DataLoader: 99% fewer database queries 🥇
 2. HTTP Batching: 80% less network overhead 🥈  
-3. Fragment Colocation: 0% performance gain (code quality only) 🎯
+3. useFragment: 99% fewer re-renders on list updates 🥉

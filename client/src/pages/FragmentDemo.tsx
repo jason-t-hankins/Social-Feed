@@ -222,7 +222,7 @@ function WithFragmentTest() {
 
   return (
     <div>
-      <h3 style={{ color: '#2196f3' }}>✅ WITH useFragment</h3>
+      <h3 style={{ color: '#2196f3' }}>WITH useFragment</h3>
       <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
         Fine-grained subscriptions - only affected components re-render
       </p>
@@ -286,7 +286,7 @@ function WithoutFragmentTest() {
 
   return (
     <div>
-      <h3 style={{ color: '#d32f2f' }}>❌ WITHOUT useFragment</h3>
+      <h3 style={{ color: '#d32f2f' }}> WITHOUT useFragment</h3>
       <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
         Props-based - entire component tree re-renders on any change
       </p>
@@ -339,9 +339,9 @@ export function FragmentDemoPage() {
 
   const startTest = () => {
     console.clear();
-    console.log('🚀 UseFragment Re-render Test');
-    console.log('👀 Watch the console for render counts');
-    console.log('📌 Click "Increment Likes" and see which components re-render');
+    console.log(' UseFragment Re-render Test');
+    console.log(' Watch the console for render counts');
+    console.log(' Click "Increment Likes" and see which components re-render');
     console.log('');
     setTestRun(prev => prev + 1);
   };
@@ -354,22 +354,6 @@ export function FragmentDemoPage() {
           Demonstrating fine-grained re-render control with useFragment
         </p>
       </header>
-
-      {/* Explanation */}
-      <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#fff3cd', borderRadius: '8px', border: '2px solid #ffc107' }}>
-        <h2 style={{ marginTop: 0 }}>💡 What This Demonstrates</h2>
-        <p style={{ fontSize: '16px', lineHeight: '1.6' }}>
-          <strong>Scenario:</strong> You have a post with content and stats (likes/comments). When a user likes the post,
-          should the entire component re-render, or just the stats?
-        </p>
-        <ul style={{ fontSize: '16px', lineHeight: '1.8' }}>
-          <li><strong>WITHOUT useFragment:</strong> The parent re-renders → ALL child components re-render (wasteful!)</li>
-          <li><strong>WITH useFragment:</strong> Only components subscribed to the changed data re-render (efficient!)</li>
-        </ul>
-        <p style={{ fontSize: '14px', marginTop: '16px', fontWeight: 'bold' }}>
-          📌 This is crucial for real-time features where data updates frequently (likes, comments, status changes).
-        </p>
-      </div>
 
       {/* Test Button */}
       <div style={{ marginBottom: '32px', padding: '24px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
@@ -386,7 +370,7 @@ export function FragmentDemoPage() {
             fontWeight: 'bold',
           }}
         >
-          ▶️ Start Test (Open Console!)
+          ▶ Start Test (Open Console!)
         </button>
       </div>
 
@@ -406,65 +390,6 @@ export function FragmentDemoPage() {
           </div>
         </div>
       )}
-
-      {/* Instructions */}
-      <div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#d1ecf1', borderRadius: '8px' }}>
-        <h2>📊 How to Observe the Difference</h2>
-        <ol style={{ fontSize: '16px', lineHeight: '1.8' }}>
-          <li><strong>Click "Start Test"</strong> button above</li>
-          <li><strong>Open Console</strong> (DevTools → Console)</li>
-          <li><strong>Click "Increment Likes"</strong> on BOTH sides</li>
-          <li><strong>Watch the console:</strong>
-            <ul>
-              <li><strong>LEFT (red/without):</strong> BOTH PostContent and PostStats render counts increment</li>
-              <li><strong>RIGHT (blue/with):</strong> Only PostStats render count increments, PostContent stays the same!</li>
-            </ul>
-          </li>
-          <li><strong>Check the numbers:</strong> Look at the "renders: X" counter in each component</li>
-        </ol>
-        <div style={{ marginTop: '16px', padding: '16px', backgroundColor: '#fff', borderRadius: '4px' }}>
-          <strong>💡 Why This Matters:</strong>
-          <p style={{ marginTop: '8px', fontSize: '14px' }}>
-            In a real social feed with 50 posts, updating one like would trigger 100+ component re-renders without useFragment.
-            With useFragment, only 1 component re-renders. That's a <strong>99% reduction</strong> in wasted work!
-          </p>
-        </div>
-      </div>
-
-      {/* When to Use */}
-      <div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#d4edda', borderRadius: '8px' }}>
-        <h2>🎯 When UseFragment Really Shines</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#c3e6cb' }}>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Scenario</th>
-              <th style={{ padding: '12px', textAlign: 'center' }}>UseFragment Benefit</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Real-time likes/reactions updating</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅✅✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Live comment counts changing</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅✅✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>User status indicators (online/offline)</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Reusable component library</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅✅</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '12px' }}>Static content that never updates</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>❌</td>
-            </tr>
-          </tbody>
-        </table>
-      </div>
     </div>
   );
 }

@@ -16,40 +16,34 @@ npm run dev
 
 ## What This Demonstrates
 
-### 🏆 1. DataLoader (Database Optimization) - BIGGEST WIN
+### 1. DataLoader (Database Optimization)
 Eliminates N+1 queries. **99% reduction in database queries!**
-- 10 posts: 11 queries → 2 queries
-- 1000 posts: 3001 queries → 4 queries
+- 10 posts: 11 queries → 2 queries (82% faster)
+- 1000 posts: 3001 queries → 4 queries (99.9% reduction)
 - **Non-negotiable for production**
 
-### 🚀 2. HTTP Batching (Network Optimization) - REAL PERFORMANCE
+### 2. HTTP Batching (Network Optimization)
 Multiple queries → one HTTP request.
-- 5 independent queries → 1 batched HTTP request
-- Best for dashboards with 10+ widgets
+- 5 independent queries → 1 batched HTTP request (80% less overhead)
+- Best for dashboards with 10+ simultaneous widgets
 - **Visible in DevTools Network tab**
 
-### 🎯 3. Fragment Colocation (Code Organization) - MAINTAINABILITY
-Components declare their own data needs.
-- Not a performance optimization!
-- Better code organization and maintainability
-- Prevents breaking changes in large teams
+### 3. useFragment (Re-render Optimization)
+Lightweight live bindings to cache data.
+- Components only re-render when THEIR fragment changes
+- Update 1 field in 100 items → only 1 component re-renders
+- **Perfect for real-time updates (likes, views, status)**
 
 ## Demo Pages
 
-- **🏆 DataLoader Demo**: Database optimization (99% fewer queries!) - THE BIGGEST WIN
-- **🚀 HTTP Batching**: Network optimization (5 requests → 1) - Real performance
-- **🎯 Fragment Colocation**: Code organization - Maintainability, not performance
-- **📱 Feed Demo**: Production app with all patterns combined
-- **⚡ Full Comparison**: Side-by-side comparison
+Three pages demonstrating all optimization patterns:
 
-**Performance Ranking:**
-1. 🥇 DataLoader (99% DB query reduction)
-2. 🥈 HTTP Batching (80% network reduction)
-3. 🥉 Fragment Colocation (0% performance gain, 100% maintainability gain)
+1. **🚀 HTTP Batching (+ DataLoader!)** - Network optimization + server logs visible
+2. **✨ useFragment** - Re-render optimization with console demos
+3. **⚡ Full Comparison** - Side-by-side metrics
 
-## Documentation
+**Note:** DataLoader is ALWAYS running! Watch your server terminal for `[DataLoader]` logs.
 
-- **📖 Demo Guide**: See `docs/DEMO_GUIDE.md` for detailed walkthrough
 - **📋 ADR**: See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for decision rationale
 
 ## Architecture

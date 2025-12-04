@@ -244,7 +244,7 @@ function Approach1Test({
     <div>
       <h3 style={{ color: '#2196f3' }}>Approach 1: UseFragment</h3>
       <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
-        ✨ Fragment colocation + cache subscriptions
+        Fragment colocation + cache subscriptions
       </p>
       {data.feed.edges.map((edge: FeedEdge) => (
         <PostCardWithFragment 
@@ -341,10 +341,10 @@ export function ApproachComparisonPage() {
 
   const startComparison = () => {
     console.clear();
-    console.log('🚀 Starting Approach Comparison Test');
-    console.log(`📊 Loading ${postCount} posts with each approach`);
+    console.log(' Starting Approach Comparison Test');
+    console.log(` Loading ${postCount} posts with each approach`);
     console.log('');
-    console.log('👀 WATCH FOR:');
+    console.log(' WATCH FOR:');
     console.log('   - Network tab: HTTP request count');
     console.log('   - Console: Component render counts');
     console.log('   - Server logs: DataLoader batching');
@@ -428,7 +428,7 @@ export function ApproachComparisonPage() {
               fontWeight: 'bold',
             }}
           >
-            {testRunning ? '⏳ Testing...' : '▶️ Start Comparison'}
+            {testRunning ? ' Testing...' : '▶ Start Comparison'}
           </button>
         </div>
       </div>
@@ -479,81 +479,6 @@ export function ApproachComparisonPage() {
           </table>
         </div>
       )}
-
-      {/* DevTools Guide */}
-      <div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#d1ecf1', borderRadius: '8px' }}>
-        <h2>📊 How to Observe Differences</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px', marginTop: '16px' }}>
-          <div>
-            <h3 style={{ fontSize: '16px', marginBottom: '8px' }}>🌐 Network Tab</h3>
-            <ul style={{ fontSize: '14px', lineHeight: '1.8' }}>
-              <li>Open DevTools → Network</li>
-              <li>Filter by "graphql"</li>
-              <li>Approach 2 should show fewer requests (batching)</li>
-            </ul>
-          </div>
-          <div>
-            <h3 style={{ fontSize: '16px', marginBottom: '8px' }}>💻 Console</h3>
-            <ul style={{ fontSize: '14px', lineHeight: '1.8' }}>
-              <li>Watch render count logs</li>
-              <li>Approach 1 tracks cache reads</li>
-              <li>Both show component renders</li>
-            </ul>
-          </div>
-          <div>
-            <h3 style={{ fontSize: '16px', marginBottom: '8px' }}>🗄️ Server Logs</h3>
-            <ul style={{ fontSize: '14px', lineHeight: '1.8' }}>
-              <li>Check terminal running server</li>
-              <li>Look for "[DataLoader]" logs</li>
-              <li>Both approaches use DataLoader</li>
-            </ul>
-          </div>
-        </div>
-      </div>
-
-      {/* Decision Guide */}
-      <div style={{ marginTop: '32px', padding: '24px', backgroundColor: '#d4edda', borderRadius: '8px' }}>
-        <h2>🎯 When to Use Each Approach</h2>
-        <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '16px' }}>
-          <thead>
-            <tr style={{ backgroundColor: '#c3e6cb' }}>
-              <th style={{ padding: '12px', textAlign: 'left' }}>Scenario</th>
-              <th style={{ padding: '12px', textAlign: 'center' }}>UseFragment</th>
-              <th style={{ padding: '12px', textAlign: 'center' }}>HTTP Batch + DataLoader</th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Complex UI with frequent updates</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Real-time features (likes, comments)</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>⚠️</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Dashboard with many independent queries</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>⚠️</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅</td>
-            </tr>
-            <tr style={{ borderBottom: '1px solid #b1dfbb' }}>
-              <td style={{ padding: '12px' }}>Simple static pages</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>❌</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅</td>
-            </tr>
-            <tr>
-              <td style={{ padding: '12px' }}>Reusable component library</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>✅</td>
-              <td style={{ padding: '12px', textAlign: 'center', fontSize: '24px' }}>⚠️</td>
-            </tr>
-          </tbody>
-        </table>
-        <p style={{ marginTop: '16px', fontSize: '14px', fontWeight: 'bold' }}>
-          💡 Best Practice: Use BOTH together! They optimize different layers and are complementary.
-        </p>
-      </div>
     </div>
   );
 }

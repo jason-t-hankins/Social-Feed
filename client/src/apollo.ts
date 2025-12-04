@@ -59,6 +59,10 @@ const cache = new InMemoryCache({
         },
       },
     },
+    // Ensure User objects are properly identified by cache
+    User: {
+      keyFields: ['id'],
+    },
   },
 });
 

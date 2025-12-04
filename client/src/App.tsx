@@ -2,10 +2,9 @@ import { useState } from 'react';
 import { Feed } from './components';
 import { ApproachComparisonPage } from './pages/ApproachComparison';
 import { BatchingDemoPage } from './pages/BatchingDemo';
-import { FragmentColocationDemoPage } from './pages/FragmentColocationDemo';
-import { DataLoaderDemoPage } from './pages/DataLoaderDemo';
+import { FragmentDemoPage } from './pages/FragmentDemo';
 
-type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'fragment-colocation' | 'dataloader';
+type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment';
 
 /**
  * App Component
@@ -50,28 +49,24 @@ function App() {
 
         <nav style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
           <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
-            📱 Feed Demo
-          </button>
-          <button onClick={() => setCurrentPage('dataloader')} style={navButtonStyle('dataloader')}>
-            🏆 DataLoader (Biggest Win!)
+             Feed Demo
           </button>
           <button onClick={() => setCurrentPage('batching-demo')} style={navButtonStyle('batching-demo')}>
-            🚀 HTTP Batching
+             HTTP Batching (+ DataLoader!)
           </button>
-          <button onClick={() => setCurrentPage('fragment-colocation')} style={navButtonStyle('fragment-colocation')}>
-            🎯 Fragment Colocation
+          <button onClick={() => setCurrentPage('usefragment')} style={navButtonStyle('usefragment')}>
+             useFragment
           </button>
           <button onClick={() => setCurrentPage('approach-comparison')} style={navButtonStyle('approach-comparison')}>
-            ⚡ Full Comparison
+             Full Comparison
           </button>
         </nav>
       </header>
 
       <main>
         {currentPage === 'feed' && <Feed />}
-        {currentPage === 'dataloader' && <DataLoaderDemoPage />}
         {currentPage === 'batching-demo' && <BatchingDemoPage />}
-        {currentPage === 'fragment-colocation' && <FragmentColocationDemoPage />}
+        {currentPage === 'usefragment' && <FragmentDemoPage />}
         {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
       </main>
 
