@@ -54,27 +54,17 @@
 
 This project demonstrates three techniques that optimize different layers:
 
-### Performance Optimizations (Ranked by Impact):
-1. **DataLoader** (Server → Database) - 99% DB query reduction - THE BIGGEST WIN!
-2. **HTTP Batching** (Client → Server) - 80% network overhead reduction
-3. **useFragment** (Component → Cache) - 99% fewer re-renders on updates
-
 ### When Each Pattern Shines
-- **DataLoader**: ✅ ALWAYS - Non-negotiable for production! Reduces 3001 queries to 4.
+- **DataLoader**:  ALWAYS - Non-negotiable for production! Reduces 3001 queries to 4.
 - **HTTP Batching**: Dashboards with 10+ independent widgets executing simultaneously
-- **useFragment**: Real-time updates (likes, views), lists with 100+ items, frequent field updates
+- **useFragment**: unclear, make sure to research
 
 See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for detailed decision rationale.
 
 ### Test Pages
 Run `npm run dev` to see live demos:
-- **🏆 DataLoader**: Database optimization (99% query reduction) - BIGGEST WIN
-- **🚀 HTTP Batching**: Network optimization (5 requests → 1) - Real performance
-- **✨ useFragment**: Re-render optimization - Live cache bindings
+- **🏆 DataLoader**: Database optimization (99% query reduction)
+- **🚀 HTTP Batching**: Network optimization (5 requests → 1)
+- **✨ useFragment**: - Live cache bindings
 - **📱 Feed Demo**: Production example with all patterns combined
 - **⚡ Full Comparison**: Side-by-side metrics
-
-**Performance Impact Ranking:**
-1. DataLoader: 99% fewer database queries 🥇
-2. HTTP Batching: 80% less network overhead 🥈  
-3. useFragment: 99% fewer re-renders on list updates 🥉
