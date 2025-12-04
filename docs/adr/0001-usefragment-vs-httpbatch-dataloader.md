@@ -108,6 +108,7 @@ Based on research from Apollo GraphQL documentation and the test results from th
 
    **Important Limitation:**
    - HTTP Batching does not provide improvement on static web pages or sites with minimal queries.
+   - Large batchIntervals and small batchIntervals will have linear effects on the performance depending on the number of simultaneous requests. (If you have a large batch and a small number of requests, you may end up waiting longer than necessary)
 
 ### Implementation Details
 
