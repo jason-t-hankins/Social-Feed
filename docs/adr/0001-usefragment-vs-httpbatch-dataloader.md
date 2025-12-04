@@ -10,26 +10,46 @@ The Social-Feed project demonstrates GraphQL optimization patterns for productio
 
 These patterns optimize different layers of the stack and complement each other.
 
-## DataLoader: (Database Enchancement)
+## DataLoader (Database Enhancement)
 
 **DataLoader solves the N+1 query problem and is ALWAYS required in production.**
 
-### Performance Impact
+### Performance Impact Example in the Sample App
 - **10 posts**: 11 queries → 2 queries (82% faster)
 - **1000 posts**: 3,001 queries → 4 queries (99.9% reduction)
-- **Always running**: Check server terminal for `[DataLoader]` logs
-
-### Example Server Logs
-```
-[DataLoader] Batched user load for 5 IDs
-[DataLoader] Batched comment count for 5 posts  
-[DataLoader] Batched like count for 5 posts
-```
 
 ### Why It's Necessary
 Without DataLoader, every relationship traversal triggers a separate database query. With 10 posts each having an author, you execute 1 query for posts + 10 queries for authors = 11 total. DataLoader batches those 10 author queries into 1 query.
 
-**Conclusion:** DataLoader should ALWAYS be enabled for GraphQL operations.
+**Conclusion:** DataLoader should be enabled for GraphQL operations.
+
+## HTTP Batching (Network Optimization)
+
+**HTTP Batching combines multiple GraphQL operations into a single HTTP request, reducing network overhead.**
+
+### Performance Impact Example in the Sample App
+- **5 simultaneous queries**: 5 HTTP requests → 1 batched request (40-60% faster)
+- Eliminates redundant connection setup, headers, and SSL handshakes
+- Most beneficial on HTTP/1.1 and high-latency networks
+
+### Why It's Useful
+When multiple components independently fetch data (common in dashboards), each triggers a separate HTTP request. HTTP Batching waits 20ms to collect operations and sends them together. Example: Loading a dashboard with user profile + notifications + messages = 3 requests becomes 1 request.
+
+**Conclusion:** HTTP Batching should be considered for UIs with multiple simultaneous queries.
+
+## useFragment (Cache Optimization)
+
+**useFragment creates lightweight live bindings to cached data, enabling progressive loading and data masking.**
+
+### Performance Impact Example in the Sample App
+- **@defer support**: Load critical data first, defer non-critical fields
+- **Cache subscriptions**: Components auto-update when their fragment data changes
+- **Data masking**: Components only access fields they explicitly declare
+
+### Why It's Useful
+useFragment works with the `@defer` directive to progressively load data. Example: Show post content immediately, then defer loading comments/likes. Also enables granular cache updates—when like count changes, only PostStats re-renders, not the entire post. Using Colocated Fragments in general can help reduce duplication and make it easier to update fields across the application.
+
+**Conclusion:** useFragment should be used with @defer for progressive loading and when granular cache updates outweigh memoization benefits.
 
 ## Decision Drivers
 
@@ -64,11 +84,6 @@ Based on research from Apollo GraphQL documentation and the test results from th
 1. **DataLoader should always be used** for any GraphQL server in production. The N+1 problem is universal and devastating to performance without batching.
 
 2. **useFragment + Fragment Colocation** provides specific benefits:
-   
-   **What useFragment Actually Does:**
-   - Works with `@defer` for streaming/progressive data loading, cache binding and data isolation
-   - **Data masking**: Components can only access fields they explicitly declare in fragments
-   - Direct cache subscriptions for granular updates to specific fragment data
    
    **Fragment Colocation Benefits** (Code Organization):
    - Components declare their own data needs, preventing breaking changes
@@ -220,7 +235,7 @@ Created test pages to validate each pattern:
 2. **useFragment Test** ([FragmentComparison.tsx](../../client/src/pages/FragmentComparison.tsx))
    - Demonstrates re-render isolation
    - Tracks component render counts
-   - **Result**: PostStats component unchanged when PostContent updates
+   - **Result**: Could not find performance enhancements, but found value in developer enhancements using Colocated Fragments
 
 3. **DataLoader Test** ([DataLoaderVisualization.tsx](../../client/src/pages/DataLoaderVisualization.tsx))
    - Visualizes N+1 query resolution
@@ -229,7 +244,7 @@ Created test pages to validate each pattern:
 
 
 
-### Continuous Validation
+### Validation
 
 1. **Code Review**: All new features must follow fragment colocation pattern
 2. **Performance Monitoring**: Track query counts and response times
@@ -306,6 +321,18 @@ Created test pages to validate each pattern:
 
 ## More Information
 
+### Automatic Persisted Queries (APQ) Compatibility
+
+APQ sends query hashes instead of full query strings to reduce request size.
+
+**Compatibility:** DataLoader, HTTP Batching (POST), useFragment. However, HTTP Batching (GET) is not compatible.
+
+**Key Trade-off:** Choose between HTTP Batching (POST) OR CDN Caching (GET) - cannot use both simultaneously.
+
+- **Our demo uses POST** (default) - fully APQ-compatible
+- **GET mode** (`useGETForHashedQueries: true`) enables CDN caching but disables batching
+- **Production choice:** Dashboard/admin = batching (POST), Public content = CDN (GET)
+
 ### External Resources
 
 - Apollo GraphQL Docs: https://www.apollographql.com/docs/
@@ -324,18 +351,6 @@ Created test pages to validate each pattern:
 - **Initial Decision**: December 2025
 - **Next Review**: March 2026 (after production deployment)
 - **Responsible**: Engineering Team Lead
-
-## Automatic Persisted Queries (APQ) Compatibility
-
-APQ sends query hashes instead of full query strings to reduce request size.
-
-**Compatibility:** DataLoader, HTTP Batching (POST), useFragment. However, HTTP Batching (GET) is not compatible.
-
-**Key Trade-off:** Choose between HTTP Batching (POST) OR CDN Caching (GET) - cannot use both simultaneously.
-
-- **Our demo uses POST** (default) - fully APQ-compatible
-- **GET mode** (`useGETForHashedQueries: true`) enables CDN caching but disables batching
-- **Production choice:** Dashboard/admin = batching (POST), Public content = CDN (GET)
 
 ### Approval
 
