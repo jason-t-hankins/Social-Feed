@@ -202,7 +202,7 @@ const GET_POST = gql`
 
 3. **Production-Ready Architecture**
    - Aligns with Apollo and industry best practices
-   - Scales to millions of users (proven by GitHub, Shopify, Netflix)
+   - Scales to millions of users (pattern used in companies like Shopify)
    - Supports real-time features efficiently
 
 ### Bad
