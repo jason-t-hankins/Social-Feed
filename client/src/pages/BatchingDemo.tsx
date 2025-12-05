@@ -226,7 +226,7 @@ export function BatchingDemoPage() {
       link: new BatchHttpLink({
         uri: 'http://localhost:4000/graphql',
         batchMax: 20,
-        batchInterval: 10,
+        batchInterval: 40,
       }),
       cache: new InMemoryCache(),
     })

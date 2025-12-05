@@ -37,25 +37,29 @@ When multiple components independently fetch data (common in dashboards), each t
 
 **Conclusion:** HTTP Batching should be considered for UIs with multiple simultaneous queries.
 
-## useFragment (Cache Optimization)
+## useFragment (Client-side Optimization)
 
-**useFragment creates lightweight live bindings to cached data, enabling progressive loading and data masking.**
+**useFragment + @nonreactive enables surgical cache updates and eliminates unnecessary re-renders, particularly powerful for rendering lists.**
 
-### Performance Impact Example in the Sample App
-- **@defer support**: Load critical data first, defer non-critical fields
-- **Cache subscriptions**: Components auto-update when their fragment data changes
-- **Data masking**: Components only access fields they explicitly declare
+### Performance Impact
+- **Targeted cache reads**: Pass only cache keys (IDs) as props instead of full data objects
+- **Direct cache subscriptions**: Leaf components read directly from cache without parent re-renders
+- **List rendering optimization**: Each list item subscribes only to its own cache data
+- **Waterfall elimination**: Updates to one item don't trigger re-renders of siblings or parents
 
 ### Why It's Useful
-useFragment works with the `@defer` directive to progressively load data. Example: Show post content immediately, then defer loading comments/likes. Also enables granular cache updates—when like count changes, only PostStats re-renders, not the entire post. Using Colocated Fragments in general can help reduce duplication and make it easier to update fields across the application.
+- **Initial render speed**: Nearly identical to props-based approach
+- **Network performance**: No difference - same GraphQL queries
+- **Primary benefit**: Eliminating **unnecessary re-renders**, not faster execution
+- **Organization**: Architectural pattern allows reusability
 
-**Conclusion:** useFragment should be used with @defer for progressive loading and when granular cache updates outweigh memoization benefits.
+**Conclusion:** useFragment + @nonreactive should be used for list rendering and scenarios where you need fine-grained control over what re-renders when cache updates occur. It's not a speed optimization - it's a **re-render reduction** optimization that provides massive benefits at scale.
 
 ## Decision Drivers
 
 - **Performance**: Minimize network requests, database queries, and component re-renders
 - **Developer Experience**: Maintainable, testable, self-documenting code
-- **Scalability**: Patterns must work at production scale (1000+ components, millions of users)
+- **Scalability**: Patterns must work at production scale
 - **Industry Standards**: Align with Apollo GraphQL and community best practices
 - **Measurability**: Decisions based on benchmarks and real-world testing
 
@@ -83,22 +87,31 @@ Based on research from Apollo GraphQL documentation and the test results from th
 
 1. **DataLoader should always be used** for any GraphQL server in production. The N+1 problem is universal and devastating to performance without batching.
 
-2. **useFragment + Fragment Colocation** provides specific benefits:
+2. **useFragment + @nonreactive + Fragment Colocation** provides specific benefits:
+   
+   **Primary Benefits** (Re-Render Reduction):
+   - **Surgical cache updates**: Update one item = only that component re-renders (91-99% re-render reduction)
+   - **@nonreactive pattern**: Parent watches IDs only, ignoring data field changes
+   - **Direct cache subscriptions**: Each child subscribes to its own cache entry independently
+   - **List rendering power**: 100-item list, update 1 item = 1 re-render instead of 101
+   - **Measured results**: FragmentDemo shows 11 re-renders → 1 re-render (10-item list)
    
    **Fragment Colocation Benefits** (Code Organization):
    - Components declare their own data needs, preventing breaking changes
    - Self-contained, portable components
+   - Pass lightweight IDs instead of full data objects
    - Reduces coupling between parent and child components
    - Especially valuable for:
+     - List components with many items
      - Reusable component libraries
      - Large development teams (5+ developers)
      - Complex nested component hierarchies
    
-   **Important Limitation:**
+   **Important Limitations:**
    - `useFragment` creates cache subscriptions that **bypass React.memo optimization**
-   - When cache updates, `useFragment` forces re-render even if `React.memo` would skip it
-   - Trade-off: More granular cache updates vs. less effective memoization
-   - Use `React.memo` on components WITHOUT `useFragment` for better re-render prevention
+   - Not primarily about performance - initial render speed is similar to props
+   - Most benefit comes from **avoiding re-render waterfalls**, not faster execution
+   - Consider `useBackgroundQuery` for actual perceived performance improvements
 
 3. **HTTP Batching is scenario-dependent** but valuable for:
    - HTTP/1.1 connections (still majority of mobile traffic)
@@ -160,29 +173,52 @@ const GET_POST = gql`
 `;
 ```
 
-**useFragment with Cache Subscriptions** (Client):
+**useFragment + @nonreactive Pattern** (Client):
 ```typescript
-// Component subscribes directly to fragment data in cache
-function PostStats({ postRef }) {
-  const { data } = useFragment({
-    fragment: POST_STATS_FRAGMENT,
-    from: postRef,
-  });
-  
-  // Updates when fragment data changes in cache
-  // Note: Cannot be effectively memoized with React.memo
-  return <div>❤️ {data.likeCount}</div>;
-}
-
-// Best used with @defer for progressive loading
-const GET_POST = gql`
-  query GetPost {
-    post {
-      id
-      ...PostStats @defer
+// Step 1: Parent query uses @nonreactive on the fragment
+const GET_POSTS_QUERY = gql`
+  query GetPosts {
+    feed {
+      edges {
+        node {
+          id                        # Parent watches IDs (add/remove items)
+          ...PostCardData @nonreactive  # But NOT data field changes!
+        }
+      }
     }
   }
+  ${POST_CARD_FRAGMENT}
 `;
+
+// Parent component - render count stays at 1!
+function Feed() {
+  const { data } = useQuery(GET_POSTS_QUERY);
+  const postIds = data.feed.edges.map(edge => edge.node.id);
+  
+  return postIds.map(id => <PostCard key={id} postId={id} />);
+  // Parent only re-renders when IDs change (items added/removed)
+  // Updates to post data (likes, content) DON'T trigger parent re-render
+}
+
+// Step 2: Child uses useFragment with only ID prop
+function PostCard({ postId }) {
+  const { data } = useFragment({
+    fragment: POST_CARD_FRAGMENT,
+    from: { __typename: 'Post', id: postId },
+  });
+  
+  // Direct cache subscription - this component re-renders ONLY when THIS post changes
+  // Parent doesn't re-render, siblings don't re-render
+  // Result: Click "like" on post #5 = only post #5 re-renders!
+  return (
+    <div>
+      <h3>{data.title}</h3>
+      <button onClick={() => incrementLikes(postId)}>
+        ❤️ {data.likeCount}
+      </button>
+    </div>
+  );
+}
 ```
 
 ## Consequences
@@ -233,10 +269,13 @@ Created test pages to validate each pattern:
    - Measures total request time and HTTP request count
    - **Result**: 3-5 simultaneous queries show 40% improvement with batching
 
-2. **useFragment Test** ([FragmentComparison.tsx](../../client/src/pages/FragmentComparison.tsx))
-   - Demonstrates re-render isolation
-   - Tracks component render counts
-   - **Result**: Could not find performance enhancements, but found value in developer enhancements using Colocated Fragments
+2. **useFragment Test** ([FragmentDemo.tsx](../../client/src/pages/FragmentDemo.tsx))
+   - Side-by-side comparison: WITHOUT vs WITH useFragment + @nonreactive
+   - 10-item list with like buttons on each post
+   - **WITHOUT**: Clicking any button = 11 re-renders (parent + 10 children)
+   - **WITH**: Clicking any button = 1 re-render (only clicked post)
+   - **Result**: 91% re-render reduction, scaling to 99% with larger lists
+   - **Key Finding**: useFragment + @nonreactive is NOT about speed - it's about eliminating unnecessary re-renders through surgical cache updates and direct component-to-cache subscriptions
 
 3. **DataLoader Test** ([DataLoaderVisualization.tsx](../../client/src/pages/DataLoaderVisualization.tsx))
    - Visualizes N+1 query resolution
@@ -339,6 +378,7 @@ APQ sends query hashes instead of full query strings to reduce request size.
 - Apollo GraphQL Docs: https://www.apollographql.com/docs/
 - DataLoader: https://github.com/graphql/dataloader
 - Shopify Engineering: https://shopify.engineering/solving-the-n-1-problem-for-graphql-through-batching
+- useFragment Performance Discussion: https://github.com/apollographql/apollo-client/issues/11118
 
 ### When to Revisit
 

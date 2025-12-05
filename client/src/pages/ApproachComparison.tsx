@@ -4,21 +4,20 @@ import { HttpLink } from '@apollo/client/link/http';
 import { BatchHttpLink } from '@apollo/client/link/batch-http';
 
 /**
- * Approach Comparison Test
+ * Approach Comparison Test - Isolated Tests + Rapid-Fire Demo
  * 
- * This page compares two architectural approaches:
+ * This page demonstrates:
+ * 1. Individual isolated tests for each approach (fresh cache, independent clients)
+ * 2. Rapid-fire query demo showing batching in action with queries in quick succession
  * 
- * APPROACH 1: UseFragment (Client Cache Optimization)
- * - Fragment colocation
- * - Fine-grained cache subscriptions
- * - Component-level re-render control
+ * 4 APPROACHES:
+ * 1. Props + HttpLink (Baseline - no client optimizations)
+ * 2. Props + BatchHttpLink (HTTP batching only)
+ * 3. UseFragment + HttpLink (Cache subscriptions only)
+ * 4. UseFragment + BatchHttpLink (Both optimizations)
  * 
- * APPROACH 2: HTTP Batch + DataLoader (Network & Server Optimization)
- * - HTTP request batching on client
- * - Database query batching on server
- * - Traditional props passing
- * 
- * Both approaches work with the same data but optimize different layers.
+ * NOTE: DataLoader runs on the server for ALL tests (always required for production).
+ * This test focuses on CLIENT-SIDE optimization patterns only.
  */
 
 // Shared fragments for both approaches
@@ -204,70 +203,24 @@ function PostCardWithProps({ post }: { readonly post: Post }) {
   );
 }
 
-// Test scenario for Approach 1: UseFragment
-function Approach1Test({ 
-  postCount,
-  onMetrics 
-}: { 
-  readonly postCount: number;
-  readonly onMetrics: (metrics: PerformanceMetrics) => void;
-}) {
-  const [metrics] = useState<PerformanceMetrics>({
-    approach: 'UseFragment (Client Cache)',
-    startTime: Date.now(),
-    httpRequests: 0,
-    componentRenders: 0,
-    cacheReads: 0,
-  });
-
-  const { data, loading, error } = useQuery<FeedData>(GET_POSTS_QUERY, {
-    variables: { first: postCount },
-  });
-
-  useEffect(() => {
-    if (data) {
-      const endTime = Date.now();
-      onMetrics({
-        ...metrics,
-        endTime,
-        duration: endTime - metrics.startTime,
-      });
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data]);
-
-  if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>⏳ Loading with useFragment...</div>;
-  if (error) return <div style={{ padding: '20px', color: 'red' }}>Error: {error.message}</div>;
-  if (!data?.feed?.edges) return null;
-
-  return (
-    <div>
-      <h3 style={{ color: '#2196f3' }}>Approach 1: UseFragment</h3>
-      <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
-        Fragment colocation + cache subscriptions
-      </p>
-      {data.feed.edges.map((edge: FeedEdge) => (
-        <PostCardWithFragment 
-          key={edge.node.id} 
-          post={edge.node}
-        />
-      ))}
-    </div>
-  );
-}
-
-// Test scenario for Approach 2: HTTP Batch + DataLoader
-function Approach2Test({ 
+// Test scenario component
+function TestScenario({ 
   postCount,
   onMetrics,
-  useBatching 
+  useFragmentHook,
+  label,
+  color,
+  description
 }: { 
   readonly postCount: number;
   readonly onMetrics: (metrics: PerformanceMetrics) => void;
-  readonly useBatching: boolean;
+  readonly useFragmentHook: boolean;
+  readonly label: string;
+  readonly color: string;
+  readonly description: string;
 }) {
   const [metrics] = useState<PerformanceMetrics>({
-    approach: 'HTTP Batch + DataLoader (Network/Server)',
+    approach: label,
     startTime: Date.now(),
     httpRequests: 0,
     componentRenders: 0,
@@ -290,18 +243,20 @@ function Approach2Test({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data]);
 
-  if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>⏳ Loading with {useBatching ? 'HTTP batching' : 'no batching'}...</div>;
+  if (loading) return <div style={{ padding: '20px', textAlign: 'center' }}>⏳ Loading...</div>;
   if (error) return <div style={{ padding: '20px', color: 'red' }}>Error: {error.message}</div>;
   if (!data?.feed?.edges) return null;
 
+  const PostCard = useFragmentHook ? PostCardWithFragment : PostCardWithProps;
+
   return (
     <div>
-      <h3 style={{ color: '#ff9800' }}>Approach 2: HTTP Batch + DataLoader</h3>
-      <p style={{ fontSize: '14px', color: '#666', marginBottom: '16px' }}>
-        ⚡ {useBatching ? 'HTTP batching enabled' : 'No HTTP batching'} + server DataLoader
+      <h3 style={{ color, margin: '0 0 8px 0' }}>{label}</h3>
+      <p style={{ fontSize: '13px', color: '#666', marginBottom: '16px' }}>
+        {description}
       </p>
       {data.feed.edges.map((edge: FeedEdge) => (
-        <PostCardWithProps 
+        <PostCard 
           key={edge.node.id} 
           post={edge.node}
         />
@@ -316,8 +271,8 @@ export function ApproachComparisonPage() {
   const [postCount, setPostCount] = useState(5);
   const [showComparison, setShowComparison] = useState(false);
 
-  // Create Apollo Clients (memoized to prevent recreation)
-  const fragmentClient = useRef(
+  // Create Apollo Clients for 2x2 matrix (memoized to prevent recreation)
+  const httpClient = useRef(
     new ApolloClient({
       link: new HttpLink({ uri: 'http://localhost:4000/graphql' }),
       cache: new InMemoryCache(),
@@ -356,9 +311,9 @@ export function ApproachComparisonPage() {
   return (
     <div style={{ maxWidth: '1400px', margin: '0 auto', padding: '24px' }}>
       <header style={{ marginBottom: '32px' }}>
-        <h1>Approach Comparison: UseFragment vs HTTP Batch + DataLoader</h1>
+        <h1>2x2 Matrix: Client-Side Optimization Patterns</h1>
         <p style={{ color: '#666', fontSize: '18px' }}>
-          Compare two architectural approaches for GraphQL optimization
+          Compare all combinations of useFragment and HTTP batching
         </p>
       </header>
 
@@ -370,24 +325,26 @@ export function ApproachComparisonPage() {
         borderRadius: '8px' 
       }}>
         <h2>What's Being Compared?</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '16px' }}>
-          <div style={{ padding: '16px', backgroundColor: '#e3f2fd', borderRadius: '8px' }}>
-            <h3 style={{ color: '#2196f3', margin: '0 0 12px 0' }}>Approach 1: UseFragment</h3>
-            <ul style={{ fontSize: '14px', lineHeight: '1.8' }}>
-              <li><strong>Layer:</strong> Client cache optimization</li>
-              <li><strong>Technique:</strong> Fragment colocation + cache subscriptions</li>
-              <li><strong>Benefit:</strong> Fine-grained re-render control</li>
-              <li><strong>Best for:</strong> Complex UIs with frequent updates</li>
-            </ul>
+        <p style={{ marginBottom: '16px', fontSize: '15px' }}>
+          <strong>Note:</strong> DataLoader runs on the server for ALL tests (always required). 
+          This comparison focuses on <strong>client-side patterns only</strong>.
+        </p>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginTop: '16px' }}>
+          <div style={{ padding: '16px', backgroundColor: '#fff', borderRadius: '8px', border: '2px solid #9e9e9e' }}>
+            <h3 style={{ color: '#9e9e9e', margin: '0 0 8px 0', fontSize: '16px' }}>1. Props + HttpLink</h3>
+            <p style={{ fontSize: '13px', margin: 0, color: '#666' }}>Baseline - no client optimizations</p>
           </div>
-          <div style={{ padding: '16px', backgroundColor: '#fff3e0', borderRadius: '8px' }}>
-            <h3 style={{ color: '#ff9800', margin: '0 0 12px 0' }}>Approach 2: HTTP Batch + DataLoader</h3>
-            <ul style={{ fontSize: '14px', lineHeight: '1.8' }}>
-              <li><strong>Layer:</strong> Network + Server optimization</li>
-              <li><strong>Technique:</strong> HTTP batching + database batching</li>
-              <li><strong>Benefit:</strong> Fewer HTTP requests + no N+1 queries</li>
-              <li><strong>Best for:</strong> Reducing network/database load</li>
-            </ul>
+          <div style={{ padding: '16px', backgroundColor: '#fff3e0', borderRadius: '8px', border: '2px solid #ff9800' }}>
+            <h3 style={{ color: '#ff9800', margin: '0 0 8px 0', fontSize: '16px' }}>2. Props + BatchHttpLink</h3>
+            <p style={{ fontSize: '13px', margin: 0, color: '#666' }}>HTTP batching only</p>
+          </div>
+          <div style={{ padding: '16px', backgroundColor: '#e3f2fd', borderRadius: '8px', border: '2px solid #2196f3' }}>
+            <h3 style={{ color: '#2196f3', margin: '0 0 8px 0', fontSize: '16px' }}>3. UseFragment + HttpLink</h3>
+            <p style={{ fontSize: '13px', margin: 0, color: '#666' }}>Cache subscriptions only</p>
+          </div>
+          <div style={{ padding: '16px', backgroundColor: '#e8f5e9', borderRadius: '8px', border: '2px solid #4caf50' }}>
+            <h3 style={{ color: '#4caf50', margin: '0 0 8px 0', fontSize: '16px' }}>4. UseFragment + BatchHttpLink</h3>
+            <p style={{ fontSize: '13px', margin: 0, color: '#666' }}>Both optimizations combined</p>
           </div>
         </div>
       </div>
@@ -403,7 +360,7 @@ export function ApproachComparisonPage() {
               value={postCount}
               onChange={(e) => setPostCount(Number(e.target.value))}
               min={1}
-              max={20}
+              max={100}
               disabled={testRunning}
               style={{
                 marginLeft: '8px',
@@ -433,18 +390,60 @@ export function ApproachComparisonPage() {
         </div>
       </div>
 
-      {/* Side-by-side comparison */}
+      {/* 2x2 Grid comparison */}
       {showComparison && (
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginBottom: '32px' }}>
-          <div style={{ padding: '24px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
-            <ApolloProvider client={fragmentClient}>
-              <Approach1Test postCount={postCount} onMetrics={handleMetrics} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
+          {/* Row 1: HttpLink */}
+          <div style={{ padding: '20px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '2px solid #9e9e9e' }}>
+            <ApolloProvider client={httpClient}>
+              <TestScenario 
+                postCount={postCount} 
+                onMetrics={handleMetrics}
+                useFragmentHook={false}
+                label="1. Props + HttpLink"
+                color="#9e9e9e"
+                description="Baseline (no client optimizations)"
+              />
             </ApolloProvider>
           </div>
 
-          <div style={{ padding: '24px', backgroundColor: '#fff', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)' }}>
+          <div style={{ padding: '20px', backgroundColor: '#fff3e0', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '2px solid #ff9800' }}>
             <ApolloProvider client={batchClient}>
-              <Approach2Test postCount={postCount} onMetrics={handleMetrics} useBatching={true} />
+              <TestScenario 
+                postCount={postCount} 
+                onMetrics={handleMetrics}
+                useFragmentHook={false}
+                label="2. Props + BatchHttpLink"
+                color="#ff9800"
+                description="HTTP batching only"
+              />
+            </ApolloProvider>
+          </div>
+
+          {/* Row 2: UseFragment */}
+          <div style={{ padding: '20px', backgroundColor: '#e3f2fd', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '2px solid #2196f3' }}>
+            <ApolloProvider client={httpClient}>
+              <TestScenario 
+                postCount={postCount} 
+                onMetrics={handleMetrics}
+                useFragmentHook={true}
+                label="3. UseFragment + HttpLink"
+                color="#2196f3"
+                description="Cache subscriptions only"
+              />
+            </ApolloProvider>
+          </div>
+
+          <div style={{ padding: '20px', backgroundColor: '#e8f5e9', borderRadius: '8px', boxShadow: '0 2px 8px rgba(0,0,0,0.1)', border: '2px solid #4caf50' }}>
+            <ApolloProvider client={batchClient}>
+              <TestScenario 
+                postCount={postCount} 
+                onMetrics={handleMetrics}
+                useFragmentHook={true}
+                label="4. UseFragment + BatchHttpLink"
+                color="#4caf50"
+                description="Both optimizations"
+              />
             </ApolloProvider>
           </div>
         </div>

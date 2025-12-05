@@ -3,8 +3,13 @@ import { Feed } from './components';
 import { ApproachComparisonPage } from './pages/ApproachComparison';
 import { BatchingDemoPage } from './pages/BatchingDemo';
 import { FragmentDemoPage } from './pages/FragmentDemo';
+import { PropsHttpLinkPage } from './pages/PropsHttpLink';
+import { PropsBatchLinkPage } from './pages/PropsBatchLink';
+import { FragmentHttpLinkPage } from './pages/FragmentHttpLink';
+import { FragmentBatchLinkPage } from './pages/FragmentBatchLink';
 
-type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment';
+type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment' | 
+  'props-httplink' | 'props-batchlink' | 'fragment-httplink' | 'fragment-batchlink';
 
 /**
  * App Component
@@ -13,7 +18,7 @@ type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment';
  * Includes navigation to test/demo pages.
  */
 function App() {
-  const [currentPage, setCurrentPage] = useState<Page>('feed');
+  const [currentPage, setCurrentPage] = useState<Page>('approach-comparison');
 
   const navButtonStyle = (page: Page) => ({
     padding: '12px 24px',
@@ -48,17 +53,29 @@ function App() {
         </p>
 
         <nav style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
-             Feed Demo
-          </button>
-          <button onClick={() => setCurrentPage('batching-demo')} style={navButtonStyle('batching-demo')}>
-             HTTP Batching (+ DataLoader!)
-          </button>
-          <button onClick={() => setCurrentPage('usefragment')} style={navButtonStyle('usefragment')}>
-             useFragment
-          </button>
           <button onClick={() => setCurrentPage('approach-comparison')} style={navButtonStyle('approach-comparison')}>
              Full Comparison
+          </button>
+          <button onClick={() => setCurrentPage('props-httplink')} style={navButtonStyle('props-httplink')}>
+            1. Props + HttpLink
+          </button>
+          <button onClick={() => setCurrentPage('props-batchlink')} style={navButtonStyle('props-batchlink')}>
+            2. Props + BatchLink
+          </button>
+          <button onClick={() => setCurrentPage('fragment-httplink')} style={navButtonStyle('fragment-httplink')}>
+            3. Fragment + HttpLink
+          </button>
+          <button onClick={() => setCurrentPage('fragment-batchlink')} style={navButtonStyle('fragment-batchlink')}>
+            4. Fragment + BatchLink
+          </button>
+          <button onClick={() => setCurrentPage('batching-demo')} style={navButtonStyle('batching-demo')}>
+             HTTP Batching Demo
+          </button>
+          <button onClick={() => setCurrentPage('usefragment')} style={navButtonStyle('usefragment')}>
+             useFragment Demo
+          </button>
+          <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
+             Feed Demo
           </button>
         </nav>
       </header>
@@ -68,6 +85,10 @@ function App() {
         {currentPage === 'batching-demo' && <BatchingDemoPage />}
         {currentPage === 'usefragment' && <FragmentDemoPage />}
         {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
+        {currentPage === 'props-httplink' && <PropsHttpLinkPage />}
+        {currentPage === 'props-batchlink' && <PropsBatchLinkPage />}
+        {currentPage === 'fragment-httplink' && <FragmentHttpLinkPage />}
+        {currentPage === 'fragment-batchlink' && <FragmentBatchLinkPage />}
       </main>
 
       {currentPage === 'feed' && (

@@ -31,76 +31,58 @@ async function seedDatabase(db: DbLike): Promise<void> {
   const commentsCollection = db.collection<Comment>('comments');
   const likesCollection = db.collection<Like>('likes');
 
-  // Check if data already exists
-  const existingUsers = await usersCollection.countDocuments();
-  if (existingUsers > 0) {
-    console.log('Database already seeded, skipping...');
-    return;
-  }
-
   console.log('Seeding database with sample data...');
 
+
   // Create sample users
-  const users = await usersCollection.insertMany([
+  const userList = [
     {
-      _id: new ObjectId(),
       username: 'alice',
       displayName: 'Alice Johnson',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=alice',
-      createdAt: new Date(),
     },
     {
-      _id: new ObjectId(),
       username: 'bob',
       displayName: 'Bob Smith',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=bob',
-      createdAt: new Date(),
     },
     {
-      _id: new ObjectId(),
       username: 'charlie',
       displayName: 'Charlie Brown',
       avatarUrl: 'https://api.dicebear.com/7.x/avataaars/svg?seed=charlie',
-      createdAt: new Date(),
     },
-  ]);
-
+  ];
+  const now = Date.now();
+  const users = await usersCollection.insertMany(
+    userList.map((u, i) => ({
+      _id: new ObjectId(),
+      ...u,
+      createdAt: new Date(now - i * 10000),
+    }))
+  );
   const userIds = Object.values(users.insertedIds);
 
-  // Create sample posts
-  const posts = await postsCollection.insertMany([
-    {
-      _id: new ObjectId(),
-      authorId: userIds[0],
-      content: 'Just learned about GraphQL fragments! They help colocate data requirements with components. 🚀',
-      createdAt: new Date(Date.now() - 3600000 * 5),
-    },
-    {
-      _id: new ObjectId(),
-      authorId: userIds[1],
-      content: 'DataLoader is amazing for solving the N+1 query problem. My API is so much faster now!',
-      createdAt: new Date(Date.now() - 3600000 * 4),
-    },
-    {
-      _id: new ObjectId(),
-      authorId: userIds[2],
-      content: 'useFragment hook in Apollo Client is a game changer for component-level subscriptions.',
-      createdAt: new Date(Date.now() - 3600000 * 3),
-    },
-    {
-      _id: new ObjectId(),
-      authorId: userIds[0],
-      content: 'HTTP batching reduces network overhead significantly. Combined with DataLoader, it\'s powerful!',
-      createdAt: new Date(Date.now() - 3600000 * 2),
-    },
-    {
-      _id: new ObjectId(),
-      authorId: userIds[1],
-      content: 'Building a social feed is a great way to learn about GraphQL performance patterns.',
-      createdAt: new Date(Date.now() - 3600000 * 1),
-    },
-  ]);
-
+  // Generate a large number of posts for scale testing
+  const NUM_POSTS = Number.parseInt(process.env.NUM_POSTS || '100', 10);
+  const postContents = [
+    'Radnomgenerated post content here!',
+    'HIIII',
+    'Sapamm',
+    'Retweet!',
+    'FallolutBOy',
+    'TragicAF',
+    'Gotta do the dishes',
+    'GraphQL + React = ❤️ <-----',
+    'Optimizing queries for fun and profit.',
+    'Learning about DataLoader batchingBRUH.',
+  ];
+  const postsToInsert = Array.from({ length: NUM_POSTS }, (_, i) => ({
+    _id: new ObjectId(),
+    authorId: userIds[i % userIds.length],
+    content: postContents[i % postContents.length] + ` [#${i + 1}]`,
+    createdAt: new Date(now - i * 60000),
+  }));
+  const posts = await postsCollection.insertMany(postsToInsert);
   const postIds = Object.values(posts.insertedIds);
 
   // Create sample comments
@@ -229,8 +211,8 @@ async function main(): Promise<void> {
   // Start HTTP server
   await new Promise<void>((resolve) => httpServer.listen({ port: PORT }, resolve));
   
-  console.log(`🚀 Server ready at http://localhost:${PORT}/graphql`);
-  console.log(`📦 HTTP batching enabled`);
+  console.log(` Server ready at http://localhost:${PORT}/graphql`);
+  console.log(` HTTP batching enabled`);
 }
 
 main().catch((error) => {
