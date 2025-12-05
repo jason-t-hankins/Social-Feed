@@ -264,7 +264,7 @@ function PostCard({ postId }) {
 
 Created test pages to validate each pattern:
 
-1. **HTTP Batching Test** ([PerformanceTest.tsx](../../client/src/pages/PerformanceTest.tsx))
+1. **HTTP Batching Test** ([BatchingDemo.tsx](../../client/src/pages/BatchingDemo.tsx))
    - Compares batched vs non-batched requests
    - Measures total request time and HTTP request count
    - **Result**: 3-5 simultaneous queries show 40% improvement with batching
@@ -277,7 +277,7 @@ Created test pages to validate each pattern:
    - **Result**: 91% re-render reduction, scaling to 99% with larger lists
    - **Key Finding**: useFragment + @nonreactive is NOT about speed - it's about eliminating unnecessary re-renders through surgical cache updates and direct component-to-cache subscriptions
 
-3. **DataLoader Test** ([DataLoaderVisualization.tsx](../../client/src/pages/DataLoaderVisualization.tsx))
+3. **DataLoader Test** (Present in all tests)
    - Visualizes N+1 query resolution
    - Shows server-side batching logs
    - **Result**: 10 posts + authors = 2 queries (vs 11 without DataLoader)
