@@ -1,0 +1,1 @@
+export { BatchingDemoPage } from './BatchingDemo';
