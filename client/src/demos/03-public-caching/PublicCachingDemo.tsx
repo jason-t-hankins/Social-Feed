@@ -1,7 +1,9 @@
 import { useState } from 'react';
-import { ApolloProvider } from '@apollo/client';
+import { ApolloProvider, useQuery } from '@apollo/client';
 import { authenticatedClient, publicClient } from '../../apollo-configs';
 import { useAuth } from '../../auth';
+import { GET_FEED, GET_PUBLIC_FEED } from '../../graphql/queries';
+import { PostCard } from '../../components';
 
 /**
  * Public Caching Demo Page
@@ -53,10 +55,10 @@ export function PublicCachingDemoPage() {
           <>
             Not authenticated
             <button 
-              onClick={() => login('demo', 'demo')} 
+              onClick={() => login('alice', 'demo')} 
               style={{ marginLeft: '16px', padding: '4px 12px' }}
             >
-              Login as Demo User
+              Login as Alice
             </button>
           </>
         )}
@@ -140,59 +142,13 @@ export function PublicCachingDemoPage() {
       }}>
         {(activeDemo === 'authenticated' || activeDemo === 'both') && (
           <ApolloProvider client={authenticatedClient}>
-            <div style={{
-              padding: '24px',
-              backgroundColor: '#fff',
-              border: '2px solid #ff6b6b',
-              borderRadius: '12px',
-            }}>
-              <h2>🔒 Authenticated Feed</h2>
-              <p style={{ color: '#666' }}>
-                Includes JWT token - NOT publicly cacheable
-              </p>
-              <div style={{
-                padding: '12px',
-                backgroundColor: '#fff5f5',
-                borderRadius: '8px',
-                fontFamily: 'monospace',
-                fontSize: '12px',
-                marginTop: '16px',
-              }}>
-                Authorization: Bearer eyJhbGc...
-              </div>
-              <p style={{ marginTop: '16px', fontSize: '14px', color: '#999' }}>
-                Feed content would appear here (to be implemented)
-              </p>
-            </div>
+            <AuthenticatedFeed />
           </ApolloProvider>
         )}
 
         {(activeDemo === 'public' || activeDemo === 'both') && (
           <ApolloProvider client={publicClient}>
-            <div style={{
-              padding: '24px',
-              backgroundColor: '#fff',
-              border: '2px solid #51cf66',
-              borderRadius: '12px',
-            }}>
-              <h2>🌍 Public Feed</h2>
-              <p style={{ color: '#666' }}>
-                No auth token - CDN/ISP cacheable
-              </p>
-              <div style={{
-                padding: '12px',
-                backgroundColor: '#f0fff4',
-                borderRadius: '8px',
-                fontFamily: 'monospace',
-                fontSize: '12px',
-                marginTop: '16px',
-              }}>
-                GET /graphql-public?extensions=...
-              </div>
-              <p style={{ marginTop: '16px', fontSize: '14px', color: '#999' }}>
-                Public feed content would appear here (to be implemented)
-              </p>
-            </div>
+            <PublicFeed />
           </ApolloProvider>
         )}
       </div>
@@ -227,6 +183,106 @@ export function PublicCachingDemoPage() {
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+/**
+ * Authenticated Feed Component
+ * Uses the authenticated Apollo Client with JWT
+ */
+function AuthenticatedFeed() {
+  const { loading, error, data } = useQuery(GET_FEED, {
+    variables: { first: 5 },
+  });
+
+  return (
+    <div style={{
+      padding: '24px',
+      backgroundColor: '#fff',
+      border: '2px solid #ff6b6b',
+      borderRadius: '12px',
+      minHeight: '400px',
+    }}>
+      <h2>🔒 Authenticated Feed</h2>
+      <p style={{ color: '#666', marginBottom: '16px' }}>
+        Includes JWT token - NOT publicly cacheable
+      </p>
+      <div style={{
+        padding: '12px',
+        backgroundColor: '#fff5f5',
+        borderRadius: '8px',
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        marginBottom: '16px',
+        wordBreak: 'break-all',
+      }}>
+        POST /graphql<br />
+        Authorization: Bearer {localStorage.getItem('auth_token')?.substring(0, 20)}...
+      </div>
+
+      {loading && <p>Loading authenticated feed...</p>}
+      {error && <p style={{ color: 'red' }}>Error: {error.message}</p>}
+      {data?.feed?.edges && (
+        <div style={{ marginTop: '16px' }}>
+          <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>
+            Showing {data.feed.edges.length} posts (Total: {data.feed.totalCount})
+          </p>
+          {data.feed.edges.slice(0, 3).map(({ node }: any) => (
+            <PostCard key={node.id} post={node} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Public Feed Component
+ * Uses the public Apollo Client (no auth, APQ enabled)
+ */
+function PublicFeed() {
+  const { loading, error, data } = useQuery(GET_PUBLIC_FEED, {
+    variables: { first: 5 },
+  });
+
+  return (
+    <div style={{
+      padding: '24px',
+      backgroundColor: '#fff',
+      border: '2px solid #51cf66',
+      borderRadius: '12px',
+      minHeight: '400px',
+    }}>
+      <h2>🌍 Public Feed</h2>
+      <p style={{ color: '#666', marginBottom: '16px' }}>
+        No auth token - CDN/ISP cacheable
+      </p>
+      <div style={{
+        padding: '12px',
+        backgroundColor: '#f0fff4',
+        borderRadius: '8px',
+        fontFamily: 'monospace',
+        fontSize: '11px',
+        marginBottom: '16px',
+        wordBreak: 'break-all',
+      }}>
+        GET /graphql-public<br />
+        (No Authorization header - APQ enabled)
+      </div>
+
+      {loading && <p>Loading public feed...</p>}
+      {error && <p style={{ color: 'red' }}>Error: {error.message}</p>}
+      {data?.publicFeed?.edges && (
+        <div style={{ marginTop: '16px' }}>
+          <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>
+            Showing {data.publicFeed.edges.length} posts (Total: {data.publicFeed.totalCount})
+          </p>
+          {data.publicFeed.edges.slice(0, 3).map(({ node }: any) => (
+            <PostCard key={node.id} post={node} />
+          ))}
+        </div>
+      )}
     </div>
   );
 }

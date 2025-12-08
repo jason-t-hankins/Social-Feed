@@ -11,6 +11,7 @@ export interface ResolverContext {
     comments: CollectionLike<Comment>;
     likes: CollectionLike<Like>;
   };
+  isPublic?: boolean; // Flag to indicate public vs authenticated endpoint
 }
 
 /**
@@ -125,6 +126,85 @@ export const resolvers = {
         content: post.content,
         createdAt: post.createdAt.toISOString(),
       }));
+    },
+
+    /**
+     * PUBLIC QUERIES - No authentication required
+     * These queries are designed to be cached by CDNs and ISPs
+     */
+
+    /**
+     * Public feed - same as feed but explicitly public for caching
+     */
+    publicFeed: async (
+      _: unknown,
+      { first = 10, after }: { first?: number; after?: string },
+      { collections }: ResolverContext
+    ) => {
+      console.log('[Public Query] publicFeed called');
+      const limit = Math.min(first, 50);
+      let query = {};
+
+      if (after) {
+        try {
+          const decodedCursor = Buffer.from(after, 'base64').toString('utf-8');
+          if (!ObjectId.isValid(decodedCursor)) {
+            throw new Error('Invalid cursor format');
+          }
+          query = { _id: { $lt: new ObjectId(decodedCursor) } };
+        } catch {
+          throw new Error('Invalid cursor');
+        }
+      }
+
+      const posts = await collections.posts
+        .find(query)
+        .sort({ _id: -1 })
+        .limit(limit + 1)
+        .toArray();
+
+      const hasNextPage = posts.length > limit;
+      if (hasNextPage) {
+        posts.pop();
+      }
+
+      const totalCount = await collections.posts.countDocuments();
+
+      const edges = posts.map((post: Post) => ({
+        node: {
+          id: post._id.toString(),
+          authorId: post.authorId.toString(),
+          content: post.content,
+          createdAt: post.createdAt.toISOString(),
+        },
+        cursor: Buffer.from(post._id.toString()).toString('base64'),
+      }));
+
+      return {
+        edges,
+        pageInfo: {
+          hasNextPage,
+          hasPreviousPage: !!after,
+          startCursor: edges[0]?.cursor || null,
+          endCursor: edges[edges.length - 1]?.cursor || null,
+        },
+        totalCount,
+      };
+    },
+
+    /**
+     * Public post - get a single post without authentication
+     */
+    publicPost: async (_: unknown, { id }: { id: string }, { loaders }: ResolverContext) => {
+      console.log('[Public Query] publicPost called for ID:', id);
+      const post = await loaders.postLoader.load(id);
+      if (!post) return null;
+      return {
+        id: post._id.toString(),
+        authorId: post.authorId.toString(),
+        content: post.content,
+        createdAt: post.createdAt.toISOString(),
+      };
     },
   },
 

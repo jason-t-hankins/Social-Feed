@@ -1,6 +1,5 @@
 import { ApolloClient, InMemoryCache, HttpLink } from '@apollo/client';
 import { createPersistedQueryLink } from '@apollo/client/link/persisted-queries';
-import { sha256 } from 'crypto-hash';
 
 /**
  * Public Apollo Client Configuration
@@ -27,15 +26,18 @@ import { sha256 } from 'crypto-hash';
 
 const httpLink = new HttpLink({
   uri: 'http://localhost:4000/graphql-public',
-  // Use GET for APQ to enable HTTP caching
-  useGETForQueries: true,
 });
 
 // Enable Automatic Persisted Queries
 // Sends query hash instead of full query string, reducing request size
+// Using crypto-hash for SHA256 hashing
 const persistedQueryLink = createPersistedQueryLink({ 
-  sha256,
-  useGETForHashedQueries: true,
+  sha256: async (data) => {
+    // Use crypto-hash dynamically
+    const { sha256: hash } = await import('crypto-hash');
+    return hash(data);
+  },
+  useGETForHashedQueries: true, // This makes the link use GET for hashed queries
 });
 
 const cache = new InMemoryCache({
@@ -66,6 +68,11 @@ const cache = new InMemoryCache({
 export const publicClient = new ApolloClient({
   link: persistedQueryLink.concat(httpLink),
   cache,
+  defaultOptions: {
+    watchQuery: {
+      fetchPolicy: 'cache-first',
+    },
+  },
   devtools: {
     enabled: true,
   },
