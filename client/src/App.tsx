@@ -1,14 +1,17 @@
 import { useState } from 'react';
 import { Feed } from './components';
-import { ApproachComparisonPage } from './pages/ApproachComparison';
-import { BatchingDemoPage } from './pages/BatchingDemo';
-import { FragmentDemoPage } from './pages/FragmentDemo';
-import { PropsHttpLinkPage } from './pages/PropsHttpLink';
-import { PropsBatchLinkPage } from './pages/PropsBatchLink';
-import { FragmentHttpLinkPage } from './pages/FragmentHttpLink';
-import { FragmentBatchLinkPage } from './pages/FragmentBatchLink';
+import { BatchingDemoPage } from './demos/01-http-batching';
+import { FragmentDemoPage } from './demos/02-usefragment';
+import { PublicCachingDemoPage } from './demos/03-public-caching';
+import {
+  ApproachComparisonPage,
+  PropsHttpLinkPage,
+  PropsBatchLinkPage,
+  FragmentHttpLinkPage,
+  FragmentBatchLinkPage,
+} from './demos/04-full-comparison';
 
-type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment' | 
+type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment' | 'public-caching' |
   'props-httplink' | 'props-batchlink' | 'fragment-httplink' | 'fragment-batchlink';
 
 /**
@@ -46,37 +49,73 @@ function App() {
         boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
       }}>
         <h1 style={{ margin: 0, fontSize: '32px', color: '#333' }}>
-          Social Feed Dashboard
+          GraphQL Optimization Patterns
         </h1>
         <p style={{ margin: '8px 0 16px', color: '#666' }}>
-          Demonstrating UseFragment vs HTTP Batch + DataLoader
+          Client, Server, and Network Layer Optimization Demos
         </p>
 
-        <nav style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
-          <button onClick={() => setCurrentPage('approach-comparison')} style={navButtonStyle('approach-comparison')}>
-             Full Comparison
-          </button>
-          <button onClick={() => setCurrentPage('props-httplink')} style={navButtonStyle('props-httplink')}>
-            1. Props + HttpLink
-          </button>
-          <button onClick={() => setCurrentPage('props-batchlink')} style={navButtonStyle('props-batchlink')}>
-            2. Props + BatchLink
-          </button>
-          <button onClick={() => setCurrentPage('fragment-httplink')} style={navButtonStyle('fragment-httplink')}>
-            3. Fragment + HttpLink
-          </button>
-          <button onClick={() => setCurrentPage('fragment-batchlink')} style={navButtonStyle('fragment-batchlink')}>
-            4. Fragment + BatchLink
-          </button>
-          <button onClick={() => setCurrentPage('batching-demo')} style={navButtonStyle('batching-demo')}>
-             HTTP Batching Demo
-          </button>
-          <button onClick={() => setCurrentPage('usefragment')} style={navButtonStyle('usefragment')}>
-             useFragment Demo
-          </button>
-          <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
-             Feed Demo
-          </button>
+        <nav style={{ display: 'flex', flexDirection: 'column', gap: '16px', alignItems: 'center' }}>
+          {/* Section 1: useFragment vs HTTP Batch + DataLoader */}
+          <div style={{ 
+            padding: '16px', 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '1200px'
+          }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#666', textAlign: 'center' }}>
+              1. useFragment vs. HTTP Batch + DataLoader
+            </h3>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setCurrentPage('approach-comparison')} style={navButtonStyle('approach-comparison')}>
+                1.0 Full Comparison
+              </button>
+              <button onClick={() => setCurrentPage('props-httplink')} style={navButtonStyle('props-httplink')}>
+                1.1 Props + HttpLink
+              </button>
+              <button onClick={() => setCurrentPage('props-batchlink')} style={navButtonStyle('props-batchlink')}>
+                1.2 Props + BatchLink
+              </button>
+              <button onClick={() => setCurrentPage('fragment-httplink')} style={navButtonStyle('fragment-httplink')}>
+                1.3 Fragment + HttpLink
+              </button>
+              <button onClick={() => setCurrentPage('fragment-batchlink')} style={navButtonStyle('fragment-batchlink')}>
+                1.4 Fragment + BatchLink
+              </button>
+              <button onClick={() => setCurrentPage('batching-demo')} style={navButtonStyle('batching-demo')}>
+                I. HTTP Batching
+              </button>
+              <button onClick={() => setCurrentPage('usefragment')} style={navButtonStyle('usefragment')}>
+                II. useFragment
+              </button>
+            </div>
+          </div>
+
+          {/* Section 2: Public Caching */}
+          <div style={{ 
+            padding: '16px', 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '1200px'
+          }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#666', textAlign: 'center' }}>
+              2. Public Caching for Unauthenticated Queries
+            </h3>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setCurrentPage('public-caching')} style={navButtonStyle('public-caching')}>
+                2.0 Public Caching
+              </button>
+            </div>
+          </div>
+
+          {/* Feed Demo (no section) */}
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
+              Feed Demo
+            </button>
+          </div>
         </nav>
       </header>
 
@@ -84,6 +123,7 @@ function App() {
         {currentPage === 'feed' && <Feed />}
         {currentPage === 'batching-demo' && <BatchingDemoPage />}
         {currentPage === 'usefragment' && <FragmentDemoPage />}
+        {currentPage === 'public-caching' && <PublicCachingDemoPage />}
         {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
         {currentPage === 'props-httplink' && <PropsHttpLinkPage />}
         {currentPage === 'props-batchlink' && <PropsBatchLinkPage />}

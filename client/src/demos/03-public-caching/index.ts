@@ -1,0 +1,1 @@
+export { PublicCachingDemoPage } from './PublicCachingDemo';

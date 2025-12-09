@@ -110,6 +110,18 @@ export const typeDefs = `#graphql
     Get all posts - alternative to feed without pagination
     """
     posts: [Post!]!
+    
+    """
+    Get public feed of posts (no authentication required).
+    Suitable for CDN/ISP caching with Cache-Control headers.
+    """
+    publicFeed(first: Int = 10, after: String): PostConnection!
+    
+    """
+    Get a single public post by ID (no authentication required).
+    Suitable for public caching.
+    """
+    publicPost(id: ID!): Post
   }
 
   """

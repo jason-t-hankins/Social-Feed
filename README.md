@@ -1,6 +1,6 @@
 # Social-Feed
 
-GraphQL optimization demo: **Fragment Colocation**, **HTTP Batching**, and **DataLoader** with React + Apollo Client + Apollo Server + MongoDB.
+**Complete GraphQL optimization patterns**: Client-side, Server-side, and Network-layer optimizations with React + Apollo Client + Apollo Server + MongoDB.
 
 ## Quick Start
 
@@ -34,17 +34,28 @@ Lightweight live bindings to cache data.
 - Update 1 field in 100 items → only 1 component re-renders
 - **Perfect for real-time updates (likes, views, status)**
 
+### 4. Public Caching (CDN/ISP Optimization) 🌐 NEW!
+Enable public caching by CDNs and network providers.
+- Separate endpoints for authenticated vs public queries
+- Automatic Persisted Queries (APQ) for smaller requests
+- GET requests with Cache-Control headers
+- **80-95% cache hit rate for public content**
+
 ## Demo Pages
 
-Three pages demonstrating all optimization patterns:
+Four comprehensive demo suites:
 
-1. **🚀 HTTP Batching (+ DataLoader!)** - Network optimization + server logs visible
-2. **✨ useFragment** - Re-render optimization with console demos
-3. **⚡ Full Comparison** - Side-by-side metrics
+1. **🚀 HTTP Batching** - Network optimization with DataLoader
+2. **✨ useFragment** - Re-render optimization with live examples
+3. **🌐 Public Caching** - CDN/ISP caching with JWT security patterns
+4. **⚡ Full Comparison** - Side-by-side metrics of all approaches
 
 **Note:** DataLoader is ALWAYS running! Watch your server terminal for `[DataLoader]` logs.
 
-- **📋 ADR**: See `docs/adr/0001-usefragment-vs-httpbatch-dataloader.md` for decision rationale
+## Architecture Decision Records
+
+- **[ADR-0001](docs/adr/0001-usefragment-vs-httpbatch-dataloader.md)**: useFragment vs HTTP Batch + DataLoader
+- **[ADR-0002](docs/adr/0002-public-graphql-caching.md)**: Public GraphQL Caching for CDNs
 
 ## Architecture
 
@@ -112,19 +123,30 @@ query GetFeed {
 
 ```
 social-feed/
-├── server/                 # Apollo GraphQL Server
+├── server/                          # Apollo GraphQL Server
 │   └── src/
-│       ├── dataloaders/    # DataLoader implementations
-│       ├── models/         # TypeScript types
-│       ├── resolvers/      # GraphQL resolvers
-│       └── schema/         # GraphQL type definitions
-├── client/                 # React + Apollo Client
+│       ├── auth/                    # JWT utilities
+│       ├── middleware/              # Auth middleware
+│       ├── endpoints/               # Separate GraphQL endpoints
+│       ├── dataloaders/             # DataLoader implementations
+│       ├── models/                  # TypeScript types
+│       ├── resolvers/               # GraphQL resolvers
+│       └── schema/                  # GraphQL type definitions
+├── client/                          # React + Apollo Client
 │   └── src/
-│       ├── components/     # React components with fragments
-│       ├── graphql/        # Queries, mutations, fragments
-│       └── apollo.ts       # Apollo Client configuration
-└── docs/                   # Documentation
-    └── USEFRAGMENT_VS_DATALOADER.md
+│       ├── demos/                   # Organized demo pages
+│       │   ├── 01-http-batching/   # HTTP batching demos
+│       │   ├── 02-usefragment/     # useFragment demos
+│       │   ├── 03-public-caching/  # Public caching demos
+│       │   └── 04-full-comparison/ # Comparison pages
+│       ├── auth/                    # Authentication context
+│       ├── apollo-configs/          # Multiple Apollo Client configs
+│       ├── components/              # React components with fragments
+│       └── graphql/                 # Queries, mutations, fragments
+└── docs/
+    └── adr/                         # Architecture Decision Records
+        ├── 0001-usefragment-vs-httpbatch-dataloader.md
+        └── 0002-public-graphql-caching.md
 ```
 
 ## Key Concepts

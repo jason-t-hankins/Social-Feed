@@ -43,9 +43,16 @@ interface PostCardProps {
       avatarUrl: string;
     };
   };
+  isInteractive?: boolean;
+  onLikeClick?: (postId: string) => void;
 }
 
-export function PostCard({ post }: PostCardProps) {
+export function PostCard({ post, isInteractive = false, onLikeClick }: PostCardProps) {
+  const handleLikeClick = () => {
+    if (onLikeClick) {
+      onLikeClick(post.id);
+    }
+  };
   const formattedDate = new Date(post.createdAt).toLocaleDateString('en-US', {
     month: 'short',
     day: 'numeric',
@@ -73,7 +80,45 @@ export function PostCard({ post }: PostCardProps) {
         {post.content}
       </p>
       
-      <PostStats post={post} />
+      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+        <PostStats post={post} />
+        {isInteractive ? (
+          <button
+            onClick={handleLikeClick}
+            style={{
+              marginLeft: 'auto',
+              padding: '8px 16px',
+              backgroundColor: '#0066cc',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '14px',
+              fontWeight: 500,
+            }}
+          >
+            Like
+          </button>
+        ) : (
+          <button
+            onClick={() => alert('Please login to like posts')}
+            style={{
+              marginLeft: 'auto',
+              padding: '8px 16px',
+              backgroundColor: '#e0e0e0',
+              color: '#666',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'not-allowed',
+              fontSize: '14px',
+              fontWeight: 500,
+            }}
+            title="Login required"
+          >
+            Like
+          </button>
+        )}
+      </div>
     </article>
   );
 }

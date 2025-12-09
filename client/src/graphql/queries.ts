@@ -104,3 +104,51 @@ export const GET_POSTS = gql`
   }
   ${POST_CARD_FRAGMENT}
 `;
+
+/**
+ * PUBLIC QUERIES - No authentication required, cacheable by CDNs
+ */
+
+/**
+ * Public Feed Query
+ * Same as GET_FEED but for public endpoint
+ */
+export const GET_PUBLIC_FEED = gql`
+  query GetPublicFeed($first: Int, $after: String) {
+    publicFeed(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          ...PostCard
+        }
+      }
+      pageInfo {
+        hasNextPage
+        hasPreviousPage
+        startCursor
+        endCursor
+      }
+      totalCount
+    }
+  }
+  ${POST_CARD_FRAGMENT}
+`;
+
+/**
+ * Public Post Query
+ * Get a single post without authentication
+ */
+export const GET_PUBLIC_POST = gql`
+  query GetPublicPost($id: ID!) {
+    publicPost(id: $id) {
+      ...PostContent
+      ...PostStats
+      author {
+        ...UserInfo
+      }
+    }
+  }
+  ${POST_CONTENT_FRAGMENT}
+  ${POST_STATS_FRAGMENT}
+  ${USER_INFO_FRAGMENT}
+`;
