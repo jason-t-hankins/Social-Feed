@@ -282,16 +282,14 @@ Apollo Server supports APQ out-of-the-box (enabled by default).
    - Risk of confusion about which client to use
    - Testing requires validating both endpoints
 
-## Eligibility Criteria for Public Queries
+## Recommendations for ShareThrift
 
 | Query | Public? | Reason |
 |-------|---------|--------|
-| `publicFeed(first: 10)` | ✅ Yes | Public posts, same for everyone |
-| `publicPost(id: "123")` | ✅ Yes | Single public post |
-| `myFeed()` | ❌ No | User-specific, requires auth |
-| `post(id: "123") { likedByMe }` | ❌ No | Contains user-specific field |
-| `trendingTopics()` | ✅ Yes | Public aggregate data |
-| `user(id: "123") { email }` | ❌ No | Contains PII |
+| `userById()` | ✅ Yes | Should be able to see users pages, specifics may be blocked |
+| `accountPlans()` | ✅ Yes | users signing up arent authenticated yet |
+| `currentUser()` | ❌ No | requires authentication and could cause errors |
+| `adminUserById()` | ❌ No | specific calls like this could leak sensitive info |
 
 ## Security Checklist
 
