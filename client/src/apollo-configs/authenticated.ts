@@ -1,5 +1,6 @@
-import { ApolloClient, InMemoryCache, HttpLink, from } from '@apollo/client';
+import { ApolloClient, InMemoryCache, from } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
+import { BatchHttpLink } from '@apollo/client/link/batch-http';
 
 /**
  * Authenticated Apollo Client Configuration
@@ -9,12 +10,15 @@ import { setContext } from '@apollo/client/link/context';
  * 
  * Key characteristics:
  * - Includes Authorization header with JWT token
+ * - Uses HTTP batching (multiple queries in one request)
  * - Cache includes user-specific data
  * - NOT suitable for public/CDN caching
  */
 
-const httpLink = new HttpLink({
+const batchLink = new BatchHttpLink({
   uri: 'http://localhost:4000/graphql',
+  batchMax: 10, // Maximum number of queries to batch
+  batchInterval: 20, // Wait 20ms to collect queries before sending
 });
 
 // Middleware to add auth token to requests
@@ -53,7 +57,7 @@ const cache = new InMemoryCache({
 });
 
 export const authenticatedClient = new ApolloClient({
-  link: from([authLink, httpLink]),
+  link: from([authLink, batchLink]),
   cache,
   devtools: {
     enabled: true,

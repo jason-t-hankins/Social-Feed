@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import { ApolloProvider, useQuery } from '@apollo/client';
+import { ApolloProvider, useQuery, useMutation } from '@apollo/client';
 import { authenticatedClient, publicClient } from '../../apollo-configs';
 import { useAuth } from '../../auth';
 import { GET_FEED, GET_PUBLIC_FEED } from '../../graphql/queries';
+import { LIKE_POST } from '../../graphql/mutations';
 import { PostCard } from '../../components';
 
 /**
@@ -66,7 +67,7 @@ export function PublicCachingDemoPage() {
 
       {/* Demo Controls */}
       <div style={{ marginBottom: '24px' }}>
-        <strong>View: </strong>
+        <strong>View: </strong>{' '}
         <button
           onClick={() => setActiveDemo('authenticated')}
           style={{
@@ -111,29 +112,6 @@ export function PublicCachingDemoPage() {
         </button>
       </div>
 
-      {/* Instructions */}
-      <div style={{
-        padding: '16px',
-        backgroundColor: '#e7f3ff',
-        border: '1px solid #b3d9ff',
-        borderRadius: '8px',
-        marginBottom: '24px',
-      }}>
-        <h3>🔍 How to Test Public Caching</h3>
-        <ol style={{ marginLeft: '20px' }}>
-          <li>Open DevTools → Network tab</li>
-          <li>Filter by "graphql"</li>
-          <li>Observe the differences:
-            <ul>
-              <li><strong>Authenticated:</strong> POST requests with Authorization header</li>
-              <li><strong>Public:</strong> GET requests with query hash (APQ), no auth header</li>
-            </ul>
-          </li>
-          <li>Check Response Headers for <code>cache-control</code></li>
-          <li>Reload page - public queries should hit cache!</li>
-        </ol>
-      </div>
-
       {/* Demo Content */}
       <div style={{
         display: 'grid',
@@ -152,37 +130,6 @@ export function PublicCachingDemoPage() {
           </ApolloProvider>
         )}
       </div>
-
-      {/* Key Findings Section */}
-      <div style={{
-        marginTop: '48px',
-        padding: '24px',
-        backgroundColor: '#f8f9fa',
-        borderRadius: '12px',
-      }}>
-        <h2>📊 Key Findings & Trade-offs</h2>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', marginTop: '16px' }}>
-          <div>
-            <h3>✅ Benefits of Public Caching</h3>
-            <ul>
-              <li>Reduced server load (CDN serves cached responses)</li>
-              <li>Faster response times (edge caching)</li>
-              <li>Lower bandwidth costs</li>
-              <li>Better scalability for high-traffic public content</li>
-            </ul>
-          </div>
-          <div>
-            <h3>⚠️ Trade-offs & Considerations</h3>
-            <ul>
-              <li>Cannot use HTTP batching (GET requests required)</li>
-              <li>Requires separate endpoints (auth vs public)</li>
-              <li>APQ setup adds complexity</li>
-              <li>Cache invalidation strategy needed</li>
-              <li>Risk of token leakage if not careful</li>
-            </ul>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }
@@ -192,9 +139,33 @@ export function PublicCachingDemoPage() {
  * Uses the authenticated Apollo Client with JWT
  */
 function AuthenticatedFeed() {
-  const { loading, error, data } = useQuery(GET_FEED, {
+  const { user, login } = useAuth();
+  const { loading, error, data, refetch } = useQuery(GET_FEED, {
     variables: { first: 5 },
+    skip: !user?.id,
   });
+
+  const [likePost] = useMutation(LIKE_POST, {
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (err) => {
+      alert(`Error liking post: ${err.message}`);
+    },
+  });
+
+  const handleLikeClick = (postId: string) => {
+    if (!user?.id) {
+      alert('Please login to like posts');
+      return;
+    }
+    likePost({
+      variables: {
+        postId,
+        userId: user.id,
+      },
+    });
+  };
 
   return (
     <div style={{
@@ -204,9 +175,9 @@ function AuthenticatedFeed() {
       borderRadius: '12px',
       minHeight: '400px',
     }}>
-      <h2>🔒 Authenticated Feed</h2>
+      <h2>Authenticated Feed</h2>
       <p style={{ color: '#666', marginBottom: '16px' }}>
-        Includes JWT token - NOT publicly cacheable
+        Requires authentication for access
       </p>
       <div style={{
         padding: '12px',
@@ -214,24 +185,64 @@ function AuthenticatedFeed() {
         borderRadius: '8px',
         fontFamily: 'monospace',
         fontSize: '11px',
-        marginBottom: '16px',
+        marginBottom: '8px',
         wordBreak: 'break-all',
       }}>
         POST /graphql<br />
-        Authorization: Bearer {localStorage.getItem('auth_token')?.substring(0, 20)}...
+        {user?.id 
+          ? `Authorization: Bearer ${localStorage.getItem('auth_token')?.substring(0, 20)}...`
+          : '(Authentication required)'}
       </div>
 
-      {loading && <p>Loading authenticated feed...</p>}
-      {error && <p style={{ color: 'red' }}>Error: {error.message}</p>}
-      {data?.feed?.edges && (
-        <div style={{ marginTop: '16px' }}>
-          <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>
-            Showing {data.feed.edges.length} posts (Total: {data.feed.totalCount})
+      {!user?.id ? (
+        <div style={{
+          padding: '32px',
+          textAlign: 'center',
+          backgroundColor: '#fff5f5',
+          borderRadius: '8px',
+        }}>
+          <p style={{ fontSize: '18px', marginBottom: '16px', color: '#d63031' }}>
+            🔐 Authentication Required
           </p>
-          {data.feed.edges.slice(0, 3).map(({ node }: any) => (
-            <PostCard key={node.id} post={node} />
-          ))}
+          <p style={{ marginBottom: '24px', color: '#666' }}>
+            You must be logged in to view the authenticated feed and interact with posts.
+          </p>
+          <button
+            onClick={() => login('alice', 'demo')}
+            style={{
+              padding: '12px 24px',
+              backgroundColor: '#0066cc',
+              color: 'white',
+              border: 'none',
+              borderRadius: '6px',
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 500,
+            }}
+          >
+            Login to View
+          </button>
         </div>
+      ) : (
+        <>
+          {loading && <p>Loading authenticated feed...</p>}
+          {error && <p style={{ color: 'red' }}>Error: {error.message}</p>}
+          {data?.feed?.edges && (
+            <div style={{ marginTop: '16px' }}>
+              <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>
+                Showing {data.feed.edges.length} of {data.feed.totalCount} posts
+              </p>
+              {data.feed.edges.map(({ node }: any) => (
+                <PostCard 
+                  key={node.id} 
+                  post={node} 
+                  isInteractive={true}
+                  onLikeClick={handleLikeClick}
+                />
+              ))}
+            </div>
+          )}
+        </>
       )}
     </div>
   );
@@ -254,9 +265,9 @@ function PublicFeed() {
       borderRadius: '12px',
       minHeight: '400px',
     }}>
-      <h2>🌍 Public Feed</h2>
+      <h2>Public Feed</h2>
       <p style={{ color: '#666', marginBottom: '16px' }}>
-        No auth token - CDN/ISP cacheable
+        View-only mode - No interactions available
       </p>
       <div style={{
         padding: '12px',
@@ -264,7 +275,7 @@ function PublicFeed() {
         borderRadius: '8px',
         fontFamily: 'monospace',
         fontSize: '11px',
-        marginBottom: '16px',
+        marginBottom: '8px',
         wordBreak: 'break-all',
       }}>
         GET /graphql-public<br />
@@ -276,10 +287,14 @@ function PublicFeed() {
       {data?.publicFeed?.edges && (
         <div style={{ marginTop: '16px' }}>
           <p style={{ fontSize: '12px', color: '#666', marginBottom: '12px' }}>
-            Showing {data.publicFeed.edges.length} posts (Total: {data.publicFeed.totalCount})
+            Showing {data.publicFeed.edges.length} of {data.publicFeed.totalCount} posts
           </p>
-          {data.publicFeed.edges.slice(0, 3).map(({ node }: any) => (
-            <PostCard key={node.id} post={node} />
+          {data.publicFeed.edges.map(({ node }: any) => (
+            <PostCard 
+              key={node.id} 
+              post={node}
+              isInteractive={false}
+            />
           ))}
         </div>
       )}
