@@ -5,6 +5,7 @@ const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-producti
 export interface JWTPayload {
   sub: string; // user ID
   username: string;
+  role: 'admin' | 'user';
   iat?: number;
   exp?: number;
 }
@@ -12,11 +13,12 @@ export interface JWTPayload {
 /**
  * Generate a JWT token for a user
  */
-export function generateToken(userId: string, username: string): string {
+export function generateToken(userId: string, username: string, role: 'admin' | 'user' = 'user'): string {
   return jwt.sign(
     {
       sub: userId,
       username,
+      role,
     },
     JWT_SECRET,
     { expiresIn: '7d' }

@@ -35,6 +35,34 @@ export const typeDefs = `#graphql
     Count of likes - demonstrates DataLoader efficiency for aggregations
     """
     likeCount: Int!
+    """
+    Analytics data - only visible to admin users.
+    Used to demonstrate permission-aware caching.
+    """
+    analytics: PostAnalytics
+  }
+
+  """
+  Analytics data for posts - only accessible by admin users.
+  Demonstrates field-level permission control and cache keying.
+  """
+  type PostAnalytics {
+    """
+    Number of times this post has been viewed
+    """
+    viewCount: Int!
+    """
+    Average time users spent viewing this post (seconds)
+    """
+    avgTimeSpent: Float!
+    """
+    Engagement rate (likes + comments / views)
+    """
+    engagementRate: Float!
+    """
+    Geographic distribution of viewers
+    """
+    topCountries: [String!]!
   }
 
   """

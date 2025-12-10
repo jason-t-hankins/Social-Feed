@@ -5,7 +5,7 @@ interface AuthContextType {
   isAuthenticated: boolean;
   login: (username: string, password: string) => Promise<void>;
   logout: () => void;
-  user: { username: string; id: string } | null;
+  user: { username: string; id: string; role: 'admin' | 'user' } | null;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -14,14 +14,18 @@ export function AuthProvider({ children }: { readonly children: ReactNode }) {
   const [token, setToken] = useState<string | null>(() => {
     return localStorage.getItem('auth_token');
   });
-  const [user, setUser] = useState<{ username: string; id: string } | null>(null);
+  const [user, setUser] = useState<{ username: string; id: string; role: 'admin' | 'user' } | null>(null);
 
   useEffect(() => {
     if (token) {
       // Decode JWT (simplified - in production use a proper JWT library)
       try {
         const payload = JSON.parse(atob(token.split('.')[1]));
-        setUser({ username: payload.username, id: payload.sub });
+        setUser({ 
+          username: payload.username, 
+          id: payload.sub,
+          role: payload.role || 'user'
+        });
       } catch (e) {
         console.error('Failed to decode token:', e);
         setToken(null);

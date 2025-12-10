@@ -2,6 +2,7 @@ import { ObjectId } from 'mongodb';
 import { User, Post, Comment, Like } from '../models/types';
 import { CollectionLike } from '../models/collection';
 import { DataLoaderContext } from '../dataloaders';
+import { permissionCache } from '../cache/PermissionAwareCache';
 
 export interface ResolverContext {
   loaders: DataLoaderContext;
@@ -12,6 +13,11 @@ export interface ResolverContext {
     likes: CollectionLike<Like>;
   };
   isPublic?: boolean; // Flag to indicate public vs authenticated endpoint
+  user?: {
+    id: string;
+    username: string;
+    role: 'admin' | 'user';
+  };
 }
 
 /**
@@ -26,13 +32,32 @@ export const resolvers = {
     /**
      * Main feed query with cursor-based pagination.
      * Returns posts in reverse chronological order.
+     * 
+     * INCLUDES PERMISSION-AWARE CACHING - cache key includes user role
      */
     feed: async (
       _: unknown,
       { first = 10, after }: { first?: number; after?: string },
-      { collections }: ResolverContext
+      { collections, user }: ResolverContext
     ) => {
       const limit = Math.min(first, 50); // Cap at 50
+
+      // Check permission-aware cache first
+      const cacheKey = {
+        query: 'GetFeed',
+        variables: { first, after },
+        userId: user?.id || 'anonymous',
+        role: user?.role || 'none',
+      };
+
+      const cached = permissionCache.get(cacheKey);
+      if (cached) {
+        console.log(`[Permission Cache] ✅ HIT - User: ${user?.username || 'anonymous'} (${user?.role || 'none'})`);
+        return cached;
+      }
+
+      console.log(`[Permission Cache] ❌ MISS - User: ${user?.username || 'anonymous'} (${user?.role || 'none'})`);
+
       let query = {};
 
       if (after) {
@@ -72,7 +97,7 @@ export const resolvers = {
         cursor: Buffer.from(post._id.toString()).toString('base64'),
       }));
 
-      return {
+      const result = {
         edges,
         pageInfo: {
           hasNextPage,
@@ -82,6 +107,11 @@ export const resolvers = {
         },
         totalCount,
       };
+
+      // Store in permission-aware cache (30 second TTL)
+      permissionCache.set(cacheKey, result, 30000);
+
+      return result;
     },
 
     post: async (_: unknown, { id }: { id: string }, { loaders }: ResolverContext) => {
@@ -378,6 +408,41 @@ export const resolvers = {
       { loaders }: ResolverContext
     ) => {
       return loaders.likeCountByPostLoader.load(parent.id);
+    },
+
+    /**
+     * Analytics data - only accessible to admin users.
+     * Demonstrates permission-aware data access.
+     */
+    analytics: async (
+      parent: { id: string },
+      _: unknown,
+      { user }: ResolverContext
+    ) => {
+      console.log('[Analytics] Resolver called for post:', parent.id, 'user:', user);
+      
+      // Only admins can see analytics
+      if (user?.role !== 'admin') {
+        console.log('[Analytics] Access denied - user role:', user?.role);
+        return null;
+      }
+
+      // Generate mock analytics data based on post ID
+      // In production, this would come from an analytics database
+      const postIdNum = Number.parseInt(parent.id.substring(parent.id.length - 4), 16);
+      const viewCount = 100 + (postIdNum % 500);
+      const avgTimeSpent = 15 + (postIdNum % 45);
+      const engagementRate = (5 + (postIdNum % 15)) / 100;
+
+      const analyticsData = {
+        viewCount,
+        avgTimeSpent,
+        engagementRate,
+        topCountries: ['USA', 'UK', 'Canada', 'Australia'].slice(0, 2 + (postIdNum % 3)),
+      };
+
+      console.log('[Analytics] Returning data:', analyticsData);
+      return analyticsData;
     },
   },
 

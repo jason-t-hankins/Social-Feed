@@ -218,8 +218,11 @@ async function main(): Promise<void> {
       
       console.log('[Login] Success:', username);
 
-      // Generate JWT token
-      const token = generateToken(user._id.toString(), user.username);
+      // Assign roles: alice is admin, everyone else is regular user
+      const role = username === 'alice' ? 'admin' : 'user';
+
+      // Generate JWT token with role
+      const token = generateToken(user._id.toString(), user.username, role);
 
       return res.json({
         token,
@@ -227,6 +230,7 @@ async function main(): Promise<void> {
           id: user._id.toString(),
           username: user.username,
           displayName: user.displayName,
+          role,
         },
       });
     } catch (error) {
@@ -290,10 +294,30 @@ async function main(): Promise<void> {
         // This allows the same endpoint to serve both authenticated and public queries
         const isPublicQuery = req.headers['x-public-query'] === 'true';
 
+        // Extract user from JWT token
+        let user;
+        const authHeader = req.headers.authorization;
+        if (authHeader) {
+          try {
+            const token = authHeader.replace('Bearer ', '');
+            const { verifyToken } = await import('./auth/jwt');
+            const payload = verifyToken(token);
+            user = {
+              id: payload.sub,
+              username: payload.username,
+              role: payload.role,
+            };
+          } catch (err) {
+            // Invalid token, continue without user
+            console.log('[Auth] Invalid token:', err);
+          }
+        }
+
         return {
           loaders,
           collections,
           isPublic: isPublicQuery, // Mark as public if header present
+          user,
         };
       },
     })

@@ -1,0 +1,1 @@
+export { PermissionCacheDemoPage } from './PermissionCacheDemo';

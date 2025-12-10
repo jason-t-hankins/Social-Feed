@@ -3,16 +3,17 @@ import { Feed } from './components';
 import { BatchingDemoPage } from './demos/01-http-batching';
 import { FragmentDemoPage } from './demos/02-usefragment';
 import { PublicCachingDemoPage, ConditionalAuthDemoPage } from './demos/03-public-caching';
+import { PermissionCacheDemoPage } from './demos/04-permission-cache';
 import {
   ApproachComparisonPage,
   PropsHttpLinkPage,
   PropsBatchLinkPage,
   FragmentHttpLinkPage,
   FragmentBatchLinkPage,
-} from './demos/04-full-comparison';
+} from './demos/05-full-comparison';
 
 type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment' | 'public-caching' | 'conditional-auth' |
-  'props-httplink' | 'props-batchlink' | 'fragment-httplink' | 'fragment-batchlink';
+  'permission-cache' | 'props-httplink' | 'props-batchlink' | 'fragment-httplink' | 'fragment-batchlink';
 
 /**
  * App Component
@@ -113,6 +114,24 @@ function App() {
             </div>
           </div>
 
+          {/* Section 3: Permission-Aware Caching */}
+          <div style={{ 
+            padding: '16px', 
+            backgroundColor: '#f8f9fa', 
+            borderRadius: '8px',
+            width: '100%',
+            maxWidth: '1200px'
+          }}>
+            <h3 style={{ margin: '0 0 12px 0', fontSize: '14px', color: '#666', textAlign: 'center' }}>
+              3. Permission-Aware In-Memory Caching
+            </h3>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <button onClick={() => setCurrentPage('permission-cache')} style={navButtonStyle('permission-cache')}>
+                3.0 Server-Side Permission Cache
+              </button>
+            </div>
+          </div>
+
           {/* Feed Demo (no section) */}
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', flexWrap: 'wrap' }}>
             <button onClick={() => setCurrentPage('feed')} style={navButtonStyle('feed')}>
@@ -128,6 +147,7 @@ function App() {
         {currentPage === 'usefragment' && <FragmentDemoPage />}
         {currentPage === 'public-caching' && <PublicCachingDemoPage />}
         {currentPage === 'conditional-auth' && <ConditionalAuthDemoPage />}
+        {currentPage === 'permission-cache' && <PermissionCacheDemoPage />}
         {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
         {currentPage === 'props-httplink' && <PropsHttpLinkPage />}
         {currentPage === 'props-batchlink' && <PropsBatchLinkPage />}
