@@ -31,17 +31,13 @@ Create two distinct GraphQL endpoints:
 
 Use a single endpoint with conditional authentication based on query/operation.
 
-### Option 3: Client-Side Query Splitting
-
-Client decides which queries go to which endpoint based on operation name.
-
-### Option 4: No Public Caching
+### Option 3: No Public Caching
 
 Continue with current approach - all queries authenticated, no public caching.
 
 ## Decision Outcome
 
-**Chosen option: "Option 1 - Separate Endpoints"**
+**Recommended Option: "Option 1 - Separate Endpoints"**
 
 ### Rationale
 
@@ -304,39 +300,10 @@ Before enabling public caching:
 - [ ] Add tests to prevent auth queries on public endpoint
 - [ ] Configure CDN to strip any auth headers (defense in depth)
 
-## Alternative Patterns Considered
-
-### CDN with Custom Caching Rules
-
-**Approach**: Use CDN rules to selectively cache POST requests
-
-**Pros**: Single endpoint, simpler client code
-
-**Cons**: 
-- Complex CDN configuration
-- Vendor-specific (not portable)
-- Higher risk of misconfiguration
-- POST caching not standard HTTP
-
-**Decision**: Rejected - non-standard, vendor lock-in
-
-### Reverse Proxy with Caching
-
-**Approach**: Use Varnish/Nginx to cache GraphQL responses
-
-**Pros**: Full control over caching logic
-
-**Cons**:
-- Requires dedicated infrastructure
-- Complex invalidation logic
-- Doesn't leverage CDN network
-- More moving parts
-
-**Decision**: Rejected - too complex for most use cases
 
 ## Pros and Cons of the Options
 
-### Option 1: Separate Endpoints (Chosen)
+### Option 1: Separate Endpoints
 
 **Pros:**
 - Complete security isolation (no token leakage possible)
@@ -358,36 +325,83 @@ Before enabling public caching:
 
 ### Option 2: Same Endpoint with Conditional Auth
 
+This approach uses a single `/graphql` endpoint for both authenticated and public queries, with conditional logic to determine when to include authentication headers.
+
+**Implementation Pattern:**
+```typescript
+// Client conditionally adds auth based on operation name
+const conditionalAuthLink = setContext((operation, { headers }) => {
+  const authenticatedOperations = ['GetFeed', 'GetPost', 'MyProfile'];
+  const shouldAuthenticate = authenticatedOperations.includes(operation.operationName || '');
+  
+  if (shouldAuthenticate) {
+    return { headers: { ...headers, authorization: `Bearer ${token}` } };
+  }
+  
+  // For public queries, remove auth and signal the server
+  return { 
+    headers: { 
+      ...headers, 
+      authorization: undefined,
+      'X-Public-Query': 'true' // Custom header to trigger cache headers
+    } 
+  };
+});
+
+// Server checks custom header to determine cache policy
+app.use('/graphql', expressMiddleware(server, {
+  context: async ({ req }) => ({
+    isPublic: req.headers['x-public-query'] === 'true',
+    // ... other context
+  })
+}));
+```
+
+**How It Works:**
+1. Client maintains whitelist of operations requiring authentication
+2. `setContext` checks operation name before adding auth header
+3. Public queries send custom `X-Public-Query` header instead
+4. Server reads header and sets cache policy accordingly
+5. Apollo Server plugin applies correct `Cache-Control` headers
+
 **Pros:**
 - Single endpoint (simpler infrastructure)
-- One client configuration
-- Can use HTTP batching for all queries
+- One Apollo Server configuration
+- Can enable public caching without separate infrastructure
 
 **Cons:**
-- Higher risk of token leakage
-- Complex conditional logic
-- Difficult to audit public queries
-- Must configure CDN to selectively cache
+- **Security Risk**: One misconfigured query exposes auth tokens to CDN
+- **Maintenance Burden**: Every query needs manual categorization in whitelist
+- **No Type Safety**: TypeScript can't enforce operation classification
+- **Coordination Required**: Client whitelist and server logic must stay in sync
+- **Complex Header Management**: Custom headers add another failure point
+- **Difficult to Audit**: Can't simply monitor one endpoint for auth headers
+- **CDN Configuration**: Still needs rules to respect custom headers
+- **Testing Complexity**: Must verify conditional logic for every operation
+- **Refactor Risk**: Renaming operations breaks whitelist silently
+- **Team Confusion**: Not obvious which queries are public from schema
+
+**Real-World Failure Scenarios:**
+1. Developer adds new query, forgets to add to whitelist → token cached by CDN
+2. Operation renamed during refactor → whitelist breaks, wrong auth behavior
+3. Custom header stripped by proxy/firewall → all requests treated as public
+4. Whitelist logic bug → tokens leaked to public cache
+5. New team member doesn't understand whitelist pattern → adds query incorrectly
 
 **Evidence:**
-- Rejected due to security concerns
-- Industry consensus: separation is safer
+- Implemented as alternative demo (ConditionalAuthDemo.tsx) showing the pattern
+- Rejected due to security and maintenance concerns
+- Industry consensus: physical separation is safer
+- Demo explicitly warns against this approach
 
-### Option 3: Client-Side Query Splitting
+**Why Physical Separation is Better:**
+- **Impossible to leak tokens**: Public endpoint never receives auth headers
+- **Self-documenting**: Endpoint URL makes intent clear
+- **Easy to audit**: Simply monitor `/graphql-public` for ANY auth header (should be zero)
+- **No coordination needed**: No whitelist to maintain
+- **Fail-safe**: Misconfiguration doesn't expose tokens
 
-**Pros:**
-- Flexible routing decisions
-- Can optimize per-query
-
-**Cons:**
-- Logic scattered across client code
-- Hard to enforce security policies
-- Difficult to maintain as queries grow
-
-**Evidence:**
-- Rejected due to maintainability concerns
-
-### Option 4: No Public Caching
+### Option 3: No Public Caching
 
 **Pros:**
 - Simplest implementation
@@ -431,15 +445,6 @@ Before enabling public caching:
 3. **CDN Provider Changes**: Different providers may have different capabilities
 4. **Traffic Patterns**: If public traffic drops below 70%, pattern may not be worth it
 5. **Security Incidents**: Any token leakage would require immediate review
-
-### Implementation Timeline
-
-- **Planning**: December 8, 2025
-- **Infrastructure Setup**: December 8, 2025
-- **Client Implementation**: December 8-9, 2025
-- **Testing & Validation**: December 9, 2025
-- **Status**: Implemented and validated
-- **Next Review**: After production deployment
 
 ### Success Criteria
 

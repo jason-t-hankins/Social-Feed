@@ -275,7 +275,7 @@ async function main(): Promise<void> {
   app.use(
     '/graphql',
     expressMiddleware(server, {
-      context: async (): Promise<ResolverContext> => {
+      context: async ({ req }): Promise<ResolverContext> => {
         // Create fresh DataLoader instances per request
         // This is crucial - DataLoader caches results, so using the same
         // instance across requests would cause stale data issues
@@ -286,10 +286,14 @@ async function main(): Promise<void> {
           collections.likes
         );
 
+        // Check for X-Public-Query header to support conditional auth demo
+        // This allows the same endpoint to serve both authenticated and public queries
+        const isPublicQuery = req.headers['x-public-query'] === 'true';
+
         return {
           loaders,
           collections,
-          isPublic: false, // Mark as authenticated endpoint
+          isPublic: isPublicQuery, // Mark as public if header present
         };
       },
     })

@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Feed } from './components';
 import { BatchingDemoPage } from './demos/01-http-batching';
 import { FragmentDemoPage } from './demos/02-usefragment';
-import { PublicCachingDemoPage } from './demos/03-public-caching';
+import { PublicCachingDemoPage, ConditionalAuthDemoPage } from './demos/03-public-caching';
 import {
   ApproachComparisonPage,
   PropsHttpLinkPage,
@@ -11,7 +11,7 @@ import {
   FragmentBatchLinkPage,
 } from './demos/04-full-comparison';
 
-type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment' | 'public-caching' |
+type Page = 'feed' | 'approach-comparison' | 'batching-demo' | 'usefragment' | 'public-caching' | 'conditional-auth' |
   'props-httplink' | 'props-batchlink' | 'fragment-httplink' | 'fragment-batchlink';
 
 /**
@@ -105,7 +105,10 @@ function App() {
             </h3>
             <div style={{ display: 'flex', gap: '8px', justifyContent: 'center', flexWrap: 'wrap' }}>
               <button onClick={() => setCurrentPage('public-caching')} style={navButtonStyle('public-caching')}>
-                2.0 Public Caching
+                2.0 Separate Endpoints
+              </button>
+              <button onClick={() => setCurrentPage('conditional-auth')} style={navButtonStyle('conditional-auth')}>
+                2.1 Conditional Auth (Alternative)
               </button>
             </div>
           </div>
@@ -124,6 +127,7 @@ function App() {
         {currentPage === 'batching-demo' && <BatchingDemoPage />}
         {currentPage === 'usefragment' && <FragmentDemoPage />}
         {currentPage === 'public-caching' && <PublicCachingDemoPage />}
+        {currentPage === 'conditional-auth' && <ConditionalAuthDemoPage />}
         {currentPage === 'approach-comparison' && <ApproachComparisonPage />}
         {currentPage === 'props-httplink' && <PropsHttpLinkPage />}
         {currentPage === 'props-batchlink' && <PropsBatchLinkPage />}
