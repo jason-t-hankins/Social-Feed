@@ -22,6 +22,8 @@ Four comprehensive demo suites are present which show various enhancements for t
 
 - **[ADR-0001](docs/adr/0001-usefragment-vs-httpbatch-dataloader.md)**: useFragment vs HTTP Batch + DataLoader
 - **[ADR-0002](docs/adr/0002-public-graphql-caching.md)**: Public GraphQL Caching for CDNs
+- **[ADR-0003](docs/adr/0003-permission-aware-caching.md)**: Server-Side Caching
+- **[ADR-0004](docs/adr/0004.md)**: Client-Side Caching
 
 ## Architecture
 
@@ -86,7 +88,7 @@ query GetFeed {
 ```
 
 
-## Testing Batching Efficiency
+## How to test
 
 1. Start the server and watch console output
 2. Follow Instructions for each test
