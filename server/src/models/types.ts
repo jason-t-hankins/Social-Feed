@@ -6,6 +6,7 @@ export interface User {
   displayName: string;
   avatarUrl: string;
   createdAt: Date;
+  ssn?: string; // Sensitive field for field-level cache masking demo
 }
 
 export interface Post {

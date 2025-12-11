@@ -52,11 +52,29 @@ const cache = new InMemoryCache({
     },
     User: {
       keyFields: ['id'],
+      fields: {
+        /**
+         * SSN Field Policy: NEVER expose SSN in client cache
+         * 
+         * Even if the server returns SSN data, the client masks it.
+         * This is a defense-in-depth security measure.
+         */
+        ssn: {
+          read() {
+            // Always return redacted value, never expose real SSN
+            return '***-**-****';
+          },
+        },
+      },
     },
   },
 });
 
 export const authenticatedClient = new ApolloClient({
+  clientAwareness: {
+    name: 'Section-3-4-Authenticated', // 🎯 Easy to find in DevTools!
+    version: '1.0',
+  },
   link: from([authLink, batchLink]),
   cache,
   devtools: {

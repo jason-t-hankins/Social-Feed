@@ -14,6 +14,11 @@ export const typeDefs = `#graphql
     Total number of posts by this user
     """
     postCount: Int!
+    """
+    Social Security Number - sensitive field that should never be cached.
+    Used to demonstrate field-level cache policies.
+    """
+    ssn: String
   }
 
   """
@@ -128,6 +133,11 @@ export const typeDefs = `#graphql
     Get a single user by ID
     """
     user(id: ID!): User
+    
+    """
+    Get a single user by username
+    """
+    userByUsername(username: String!): User
     
     """
     Get all users - useful for testing batching scenarios

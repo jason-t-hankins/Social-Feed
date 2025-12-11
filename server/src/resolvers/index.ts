@@ -137,6 +137,18 @@ export const resolvers = {
       };
     },
 
+    userByUsername: async (_: unknown, { username }: { username: string }, { collections }: ResolverContext) => {
+      const user = await collections.users.findOne({ username });
+      if (!user) return null;
+      return {
+        id: user._id.toString(),
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        createdAt: user.createdAt.toISOString(),
+      };
+    },
+
     users: async (_: unknown, __: unknown, { collections }: ResolverContext) => {
       const users = await collections.users.find().toArray();
       return users.map((user) => ({
@@ -471,6 +483,12 @@ export const resolvers = {
     ) => {
       return loaders.postCountByAuthorLoader.load(parent.id);
     },
+
+    /**
+     * SSN field - always returns null (never expose sensitive data).
+     * Used to demonstrate field-level cache policies.
+     */
+    ssn: () => null,
   },
 
   /**

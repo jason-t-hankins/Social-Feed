@@ -66,6 +66,10 @@ const cache = new InMemoryCache({
 });
 
 export const publicClient = new ApolloClient({
+  clientAwareness: {
+    name: 'Section-2-Public-Cache', // 🎯 Easy to find in DevTools!
+    version: '1.0',
+  },
   link: persistedQueryLink.concat(httpLink),
   cache,
   defaultOptions: {
