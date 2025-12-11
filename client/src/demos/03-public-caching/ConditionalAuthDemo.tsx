@@ -1,7 +1,8 @@
-import { ApolloClient, InMemoryCache, ApolloProvider, useQuery, from, createHttpLink } from '@apollo/client';
+import { ApolloClient, InMemoryCache, ApolloProvider, useQuery, useMutation, from, createHttpLink } from '@apollo/client';
 import { setContext } from '@apollo/client/link/context';
 import { useAuth } from '../../auth';
 import { GET_FEED, GET_PUBLIC_FEED } from '../../graphql/queries';
+import { LIKE_POST } from '../../graphql/mutations';
 import { PostCard } from '../../components';
 
 /**
@@ -25,7 +26,7 @@ const createConditionalClient = (hasToken: boolean) => {
   // This context link checks operation name and conditionally adds auth
   const conditionalAuthLink = setContext((operation, { headers }) => {
     // List of operations that should include auth
-    const authenticatedOperations = ['GetFeed', 'GetPost', 'MyProfile', 'CreatePost'];
+    const authenticatedOperations = ['GetFeed', 'GetPost', 'MyProfile', 'CreatePost', 'LikePost'];
     
     // Check if this operation should be authenticated
     const shouldAuthenticate = authenticatedOperations.includes(operation.operationName || '');
@@ -172,10 +173,32 @@ export function ConditionalAuthDemoPage() {
 
 function AuthenticatedFeed() {
   const { user } = useAuth();
-  const { loading, error, data } = useQuery(GET_FEED, {
+  const { loading, error, data, refetch } = useQuery(GET_FEED, {
     variables: { first: 5 },
     skip: !user?.id,
   });
+
+  const [likePost] = useMutation(LIKE_POST, {
+    onCompleted: () => {
+      refetch();
+    },
+    onError: (err) => {
+      alert(`Error liking post: ${err.message}`);
+    },
+  });
+
+  const handleLikeClick = (postId: string) => {
+    if (!user?.id) {
+      alert('Please login to like posts');
+      return;
+    }
+    likePost({
+      variables: {
+        postId,
+        userId: user.id,
+      },
+    });
+  };
 
   return (
     <div style={{
@@ -214,7 +237,7 @@ function AuthenticatedFeed() {
                 Showing {data.feed.edges.length} of {data.feed.totalCount} posts
               </p>
               {data.feed.edges.map(({ node }: any) => (
-                <PostCard key={node.id} post={node} />
+                <PostCard key={node.id} post={node} isInteractive={true} onLikeClick={handleLikeClick} />
               ))}
             </div>
           )}
